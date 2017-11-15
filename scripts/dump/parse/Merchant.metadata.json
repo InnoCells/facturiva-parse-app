@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":1,"key":{"_id":1},"name":"_id_","ns":"parse.Merchant"},{"v":1,"key":{"DocumentDBDefaultIndex":1},"name":"DocumentDBDefaultIndex_1","ns":"parse.Merchant"},{"v":1,"key":{"DocumentDBDefaultIndex":"2dsphere"},"name":"DocumentDBDefaultIndex_2dsphere","ns":"parse.Merchant"}]}
