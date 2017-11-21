@@ -2,6 +2,7 @@
 
 Parse.Cloud.beforeSave('Tickets', async function(request, response) {
   const logger = request.log;
+  logger.error('Request: ', request);
   try {
     const ticketQuery = new Parse.Query('Tickets');
     ticketQuery.equalTo('objectId', request.object.id);
