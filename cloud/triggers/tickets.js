@@ -1,6 +1,6 @@
 const _ = require('lodash');
 
-Parse.Cloud.beforeSave('Tickets', async (request, response) => {
+Parse.Cloud.beforeSave('Tickets', async function(request, response) {
   try {
     const ticketQuery = new Parse.Query('Tickets');
     ticketQuery.include('merchant');
