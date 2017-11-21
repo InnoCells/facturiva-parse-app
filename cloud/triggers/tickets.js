@@ -5,7 +5,7 @@ Parse.Cloud.beforeSave('Tickets', async function(request) {
     const ticket = Parse.Object.extend('votes');
     const oldTicket = new Ticket();
     oldTicket.set('objectId', request.object.id);
-    const res = oldTicket.fetch();
+    const res = await oldTicket.fetch();
     request.log.error('oldTicket: ', oldTicket);
     // break;
   }
