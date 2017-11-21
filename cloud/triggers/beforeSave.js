@@ -2,12 +2,13 @@
 
 Parse.Cloud.beforeSave('Tickets', function(request, response) {
   const logger = request.log;
-  logger.error('Request: ', request);
+
   try {
-    const ticketQuery = new Parse.Query('Tickets');
-    ticketQuery.equalTo('objectId', request.object.id);
-    ticketQuery.include('user');
-    ticketQuery.include('merchant');
+    logger.error('Request: ', request.object);
+    // const ticketQuery = new Parse.Query('Tickets');
+    // ticketQuery.equalTo('objectId', request.object.id);
+    // ticketQuery.include('user');
+    // ticketQuery.include('merchant');
     // const ticketResult = await ticketQuery.first();
     // logger.error('ticketResult 2: ', request);
 
