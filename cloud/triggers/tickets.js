@@ -30,8 +30,8 @@ Parse.Cloud.beforeSave('Tickets', function(request, response) {
     //     await res.destroy();
     //     res.save();
     //   }
-      // }
-    }
+    // }
+    // }
     response.success();
   } catch (error) {
     response.error('Error on beforeSave Tickets', error);
