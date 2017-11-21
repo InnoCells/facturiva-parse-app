@@ -1,4 +1,4 @@
-Parse.Cloud.beforeSave('Tickets', async function(request, response) {
+Parse.Cloud.beforeSave('Tickets', function(request, response) {
   try {
     if (!request.object.isNew()) {
       // for (dirtyKey in request.object.dirtyKeys()) {
