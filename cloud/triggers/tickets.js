@@ -5,7 +5,7 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
       //   if (dirtyKey === "merchant") {
       const Ticket = Parse.Object.extend('Tickets');
       const oldTicket = new Ticket();
-      const res = await oldTicket.get(request.object.id);
+      const res = await oldTicket.fetch(request.object.id);
       // oldTicket.fetch();
       request.log.error('oldTicket: ', res);
       // break;
