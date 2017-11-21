@@ -2,13 +2,13 @@ Parse.Cloud.beforeSave('Tickets', async function(request) {
   if (!request.object.isNew()) {
     // for (dirtyKey in request.object.dirtyKeys()) {
     //   if (dirtyKey === "merchant") {
-        const ticket = Parse.Object.extend("votes");
-        const oldTicket = new Ticket();
-        oldTicket.set('objectId', request.object.id);
-        const res = oldTicket.fetch();
-        request.log.error('oldTicket: ', oldTicket);
-        break;
-      }
+    const ticket = Parse.Object.extend('votes');
+    const oldTicket = new Ticket();
+    oldTicket.set('objectId', request.object.id);
+    const res = oldTicket.fetch();
+    request.log.error('oldTicket: ', oldTicket);
+    // break;
+  }
   //   }
   // }
   response.success();
