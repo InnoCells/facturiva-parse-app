@@ -7,9 +7,9 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
     ticketQuery.equalTo('objectId', request.object.id);
     ticketQuery.include('user');
     ticketQuery.include('merchant');
-    const ticketResult = await ticketQuery.first();
-
-    logger.error('ticketResult: ', ticketResult);
+    Promise.resolve(ticketQuery.first()).then(ticket => {
+      logger.error('ticketResult 2: ', ticket);
+    });
 
     if (ticketResult) {
       logger.error('Entra en el if');
