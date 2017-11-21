@@ -1,3 +1,3 @@
 Parse.Cloud.afterSave('Tickets', function(request) {
-  console.log('Request: ', request.object.id);
+  request.log.info('Request: ', request.object.id);
 });
