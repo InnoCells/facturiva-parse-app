@@ -3,9 +3,17 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
     if (!request.object.isNew()) {
       // for (dirtyKey in request.object.dirtyKeys()) {
       //   if (dirtyKey === "merchant") {
-      const query = new Parse.Query('Tickets');
-      const result = await query.get(request.object.id);
-      request.log.error('ER - Ticket: ', result);
+      var Votes = Parse.Object.extend('Tickets');
+      var oldVote = new Votes();
+      oldVote.set('objectId', request.object.id);
+      oldVote.fetch({
+        success: function(oldVote) {
+          request.log.error('ER - Request: ', oldVote);
+        },
+        error: function(oldVote, error) {
+          request.log.error('ER - Error: ', error.message);
+        }
+      });
       // break;
     }
     //   }
