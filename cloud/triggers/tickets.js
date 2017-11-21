@@ -1,5 +1,36 @@
 var _ = require('lodash');
 
+Parse.Cloud.beforeSave('Tickets', async (request, response) => {
+  try {
+    const ticketQuery = new Parse.Query('Tickets');
+    ticketQuery.include('merchant');
+    ticketQuery.include('user');
+    ticketQuery.equalTo('objectId', request.object.id);
+
+    const ticketQuery = await ticketQuery.first();
+    if (ticketQuery) {
+      // if (ticketQuery.get('merchant') !== request.object.get('merchant')) {
+      const autonomoMerchantTicketQuery = new Parse.Query(
+        'AutomoTicketMerchant'
+      );
+      autonomoMerchantTicketQuery.equalTo('autonomo', ticketQuery.get('user'));
+      autonomoMerchantTicketQuery.equalTo(
+        'merchant',
+        ticketQuery.get('merchant')
+      );
+
+      const res = await autonomoMerchantTicketQuery.first();
+      if (res) {
+        res.delete();
+        res.save();
+      }
+      // }
+    }
+  } catch (error) {
+    request.log.error('Error on beforeSave Tickets', error);
+  }
+});
+
 Parse.Cloud.afterSave('Tickets', async function(request) {
   try {
     request.log.info('Request: ', request.object.id);
