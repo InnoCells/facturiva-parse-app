@@ -12,7 +12,7 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
   //   }
   // }
   response.success();
-}
+});
 
 Parse.Cloud.afterSave('Tickets', async function(request) {
   try {
