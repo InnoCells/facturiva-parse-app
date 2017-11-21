@@ -8,6 +8,7 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
     ticketQuery.include('user');
     ticketQuery.equalTo('objectId', request.object.id);
 
+    logger.error('ticketId: ', request.object.id);
     const ticketResult = await ticketQuery.first();
 
     if (ticketResult) {
