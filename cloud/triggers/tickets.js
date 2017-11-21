@@ -1,4 +1,20 @@
 Parse.Cloud.afterSave('Tickets', async function(request) {
+  if (!request.object.isNew()) {
+    // for (dirtyKey in request.object.dirtyKeys()) {
+    //   if (dirtyKey === "merchant") {
+        const ticket = Parse.Object.extend("votes");
+        const oldTicket = new Ticket();
+        oldTicket.set('objectId', request.object.id);
+        const res = oldTicket.fetch();
+        request.log.error('oldTicket: ', oldTicket);
+        break;
+      }
+  //   }
+  // }
+  response.success();
+}
+
+Parse.Cloud.afterSave('Tickets', async function(request) {
   try {
     request.log.info('Request: ', request.object.id);
     const ticketQuery = new Parse.Query('Tickets');
