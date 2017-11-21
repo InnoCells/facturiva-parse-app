@@ -8,25 +8,25 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
     ticketQuery.include('user');
     ticketQuery.equalTo('objectId', request.object.id);
 
-    const ticketQuery = await ticketQuery.first();
+    const ticketResult = await ticketQuery.first();
 
-    if (ticketQuery) {
-      logger.info('beforeSave: ', request.object.id);
-      //   // if (ticketQuery.get('merchant') !== request.object.get('merchant')) {
-      //   const autonomoMerchantTicketQuery = new Parse.Query(
-      //     'AutomoTicketMerchant'
-      //   );
-      //   autonomoMerchantTicketQuery.equalTo('autonomo', ticketQuery.get('user'));
-      //   autonomoMerchantTicketQuery.equalTo(
-      //     'merchant',
-      //     ticketQuery.get('merchant')
-      //   );
-      //   const res = await autonomoMerchantTicketQuery.first();
-      //   if (res) {
-      //     res.delete();
-      //     res.save();
-      //   }
-      //   // }
+    if (ticketResult) {
+      // if (ticketQuery.get('merchant') !== request.object.get('merchant')) {
+      const autonomoMerchantTicketQuery = new Parse.Query(
+        'AutomoTicketMerchant'
+      );
+      autonomoMerchantTicketQuery.equalTo('autonomo', ticketResult.get('user'));
+      autonomoMerchantTicketQuery.equalTo(
+        'merchant',
+        ticketResult.get('merchant')
+      );
+      const res = await autonomoMerchantTicketQuery.first();
+      if (res) {
+        logger.info('beforeSave: ', res);
+        res.delete();
+        res.save();
+      }
+      // }
     }
     response.success();
   } catch (error) {
