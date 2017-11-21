@@ -3,12 +3,9 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
     if (!request.object.isNew()) {
       // for (dirtyKey in request.object.dirtyKeys()) {
       //   if (dirtyKey === "merchant") {
-      const Ticket = Parse.Object.extend('Tickets');
-      const oldTicket = new Ticket();
-      oldTicket.set('objectId', request.object.id);
-      const res = await oldTicket.fetch();
-      // oldTicket.fetch();
-      request.log.error('oldTicket: ', res);
+      const query = new Parse.Query('Tickets');
+      const result = await query.get(request.object.id);
+      request.log.info('Result: ', result);
       // break;
     }
     //   }
