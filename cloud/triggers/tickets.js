@@ -1,20 +1,11 @@
-Parse.Cloud.beforeSave('Tickets', function(request, response) {
+Parse.Cloud.beforeSave('Tickets', async function(request, response) {
   try {
     if (!request.object.isNew()) {
       // for (dirtyKey in request.object.dirtyKeys()) {
       //   if (dirtyKey === "merchant") {
       const query = new Parse.Query('Tickets');
-      query.get(request.object.id, {
-        // Gets row you're trying to update
-        success: function(row) {
-          request.log.error('Result: ', row);
-        },
-        error: function(row, error) {
-          request.log.error('Error: ', error);
-          response.error(error.message);
-        }
-      });
-
+      const result = await query.get(request.object.id);
+      request.log.error('ER - Ticket: ', result);
       // break;
     }
     //   }
