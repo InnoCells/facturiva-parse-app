@@ -4,8 +4,17 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
       // for (dirtyKey in request.object.dirtyKeys()) {
       //   if (dirtyKey === "merchant") {
       const query = new Parse.Query('Tickets');
-      const result = await query.get(request.object.id);
-      request.log.info('Result: ', result);
+      query.get(request.object.id, {
+        // Gets row you're trying to update
+        success: function(row) {
+          request.log.info('Result: ', row);
+        },
+        error: function(row, error) {
+          request.log.info('Error: ', error);
+          response.error(error.message);
+        }
+      });
+
       // break;
     }
     //   }
