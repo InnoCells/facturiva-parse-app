@@ -10,7 +10,7 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
 
     const ticketResult = await ticketQuery.first();
 
-    logger.error('ticketResult: ', ticketResult);
+    logger.error('ticketResult: ', request.object.get('objectId'));
 
     if (ticketResult) {
       logger.error('Entra en el if');
