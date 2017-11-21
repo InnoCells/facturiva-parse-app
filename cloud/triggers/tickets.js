@@ -1,3 +1,5 @@
+const logger = require('parse-server').logger;
+
 Parse.Cloud.afterSave('Tickets', function(request) {
-  console.log('Request: ', request);
+  logger.log('Request: ', request);
 });
