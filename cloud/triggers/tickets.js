@@ -7,10 +7,10 @@ Parse.Cloud.beforeSave('Tickets', function(request, response) {
       query.get(request.object.id, {
         // Gets row you're trying to update
         success: function(row) {
-          request.log.info('Result: ', row);
+          request.log.error('Result: ', row);
         },
         error: function(row, error) {
-          request.log.info('Error: ', error);
+          request.log.error('Error: ', error);
           response.error(error.message);
         }
       });
