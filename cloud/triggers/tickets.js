@@ -5,14 +5,15 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
   try {
     const ticketQuery = new Parse.Query('Tickets');
     ticketQuery.equalTo('objectId', request.object.id);
-    ticketQuery.include('merchant');
-    ticketQuery.include('user');
+    // ticketQuery.include('merchant');
+    // ticketQuery.include('user');
 
     const ticketResult = await ticketQuery.first();
 
     logger.error('ticketResult: ', ticketResult);
 
     if (ticketResult) {
+      logger.error('Entra en el if');
       // if (ticketQuery.get('merchant') !== request.object.get('merchant')) {
       const autonomoMerchantTicketQuery = new Parse.Query(
         'AutomoTicketMerchant'
@@ -25,6 +26,7 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
       const res = await autonomoMerchantTicketQuery.first();
       logger.info('beforeSave');
       if (res) {
+        logger.error('Elimina registro');
         logger.info('beforeSave: ', res);
         await res.destroy();
         res.save();
