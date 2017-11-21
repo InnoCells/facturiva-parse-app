@@ -1,4 +1,4 @@
-const _ = require('lodash');
+// const _ = require('lodash');
 
 Parse.Cloud.beforeSave('Tickets', async function(request, response) {
   const logger = request.log;
@@ -8,7 +8,7 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
     ticketQuery.include('user');
     ticketQuery.equalTo('objectId', request.object.id);
 
-    const ticketQuery = await ticketQuery.first();
+    // const ticketQuery = await ticketQuery.first();
     logger.info('Post beforeSave Ticket');
     // if (ticketQuery) {
     //   // if (ticketQuery.get('merchant') !== request.object.get('merchant')) {
@@ -31,6 +31,7 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
     response.success();
   } catch (error) {
     response.error('Error on beforeSave Tickets', error);
+    logger.error('Post beforeSave Ticket' + error);
     request.log.error('Error on beforeSave Tickets', error);
   }
 });
