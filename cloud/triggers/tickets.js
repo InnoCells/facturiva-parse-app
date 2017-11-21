@@ -23,7 +23,7 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
       const res = await autonomoMerchantTicketQuery.first();
       if (res) {
         logger.info('beforeSave: ', res);
-        res.delete();
+        await res.destroy();
         res.save();
       }
       // }
