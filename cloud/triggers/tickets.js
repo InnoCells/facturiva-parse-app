@@ -1,4 +1,4 @@
-var _ = require('lodash');
+const _ = require('lodash');
 
 Parse.Cloud.beforeSave('Tickets', async (request, response) => {
   try {
@@ -26,7 +26,9 @@ Parse.Cloud.beforeSave('Tickets', async (request, response) => {
       }
       // }
     }
+    response.success();
   } catch (error) {
+    response.error('Error on beforeSave Tickets', error);
     request.log.error('Error on beforeSave Tickets', error);
   }
 });
