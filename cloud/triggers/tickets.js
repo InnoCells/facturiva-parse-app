@@ -28,11 +28,13 @@ async function deleteTicketFromAutonomoMerchantRelationIfExsist(
 
     const result = await query.first();
 
-    if (result) {
-      const indexArray = _.indexOf(result.get('tickets'), ticket);
-      logger.error(`Index array: ${indexArray}`);
-    }
-  } catch (error) {}
+    // if (result) {
+    const indexArray = _.indexOf(result.get('tickets'), ticket);
+    logger.error(`Index array: ${indexArray}`);
+    // }
+  } catch (error) {
+    throw error;
+  }
 }
 
 Parse.Cloud.afterSave('Tickets', async function(request) {
