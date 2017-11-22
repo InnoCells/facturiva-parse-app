@@ -49,7 +49,6 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
 
     if (newStatus !== oldStatus) {
       if (newStatus !== 'AP') {
-        logger.error('se ha cambiado el status');
         await deleteTicketFromAutonomoMerchantRelationIfExsist(
           request.object.get('user'),
           newMerchant,
@@ -57,7 +56,17 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
         );
         //TODO: Eliminar ticket en la relacion Usuario/Merchant/Ticket
       } else {
-        //TODO: Insertar ticket en la relacion Usuario/Merchant/Ticket
+        const autonomoMerchantTicket = new Parse.Object('AutomoTicketMerchant');
+        const autonomoMerchantTicketACL = new Parse.ACL();
+        autonomoMerchantTicketACL.setPublicWriteAccess(false);
+        autonomoMerchantTicketACL.setPublicReadAccess(false);
+        autonomoMerchantTicketACL.setRoleWriteAccess('Admin', true);
+        autonomoMerchantTicketACL.setRoleReadAccess('Admin', true);
+        autonomoMerchantTicket.setACL(autonomoMerchantTicketACL);
+        autonomoMerchantTicket.set('autonomo', request.object.get('user'));
+        autonomoMerchantTicket.set('merchant', newMerchant);
+        autonomoMerchantTicket.set('tickets', [request.object]);
+        autonomoMerchantTicket.save();
       }
     }
 
