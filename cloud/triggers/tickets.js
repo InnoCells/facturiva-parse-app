@@ -37,6 +37,8 @@ async function deleteTicketFromAutonomoMerchantRelationIfExsist(
 
     const result = await autonomoMerchant.first();
 
+    await result.destroy();
+
     logger.error(`Merchant response: ${result.get('nombre')}`);
     // const merchant = new Parse.Query('Merchant');
     // const result = await merchant.fetch();
