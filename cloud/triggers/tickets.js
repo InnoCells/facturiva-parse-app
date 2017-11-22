@@ -2,14 +2,16 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
   try {
     const newMerchant = request.object.get('merchant').id;
     const oldMerchant = request.original.get('merchant').id;
+    const owner = request.object.get('user');
 
     if (newMerchant !== oldMerchant) {
       request.log.error('Se han cambiado los merchants');
 
       const query = new Parse.Query('AutomoTicketMerchant');
-      query.equalTo('autonomo', request.object.get('user'));
-      query.equalTo('merchant', request.object.get('merchant'));
       query.include('tickets');
+      query.equalTo('autonomo', owner);
+      query.equalTo('merchant', oldMerchant);
+
       const result = await query.first();
       request.log.error(
         'Query AutonomoTicketMerchant: ',
