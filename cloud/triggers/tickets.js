@@ -12,6 +12,11 @@ async function getAutonomoMerchantTicket(autnomo, merchant) {
   }
 }
 
+Parse.Cloud.beforeSave('Tickets', async function(request, response) {
+  request.log.error('Dirty Keys beforeSave', request.object.dirtyKeys());
+  response.success();
+}
+
 Parse.Cloud.afterSave('Tickets', async function(request) {
   try {
     if (request.object.isNew()) return;
