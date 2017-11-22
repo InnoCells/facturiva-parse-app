@@ -15,7 +15,7 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
       const result = await query.first();
       request.log.error(
         'Query AutonomoTicketMerchant: ',
-        JSON.stringify(result)
+        JSON.stringify(result.id)
       );
     }
 
