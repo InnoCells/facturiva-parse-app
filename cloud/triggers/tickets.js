@@ -1,7 +1,7 @@
 Parse.Cloud.beforeSave('Tickets', function(request, response) {
   try {
     const newMerchant = request.object.get('merchant');
-    const oldMerchant = request.origina.get('merchant');
+    const oldMerchant = request.original.get('merchant');
     request.log.error(
       `newMerchant: ${JSON.stringify(
         newMerchant
