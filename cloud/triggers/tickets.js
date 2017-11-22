@@ -49,28 +49,35 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
     const newMerchant = request.original.get('merchant');
     const oldMerchant = request.object.get('merchant');
 
-    if (newStatus !== oldStatus) {
-      if (newStatus !== 'AP') {
-        await deleteTicketFromAutonomoMerchantRelationIfExsist(
-          request.object.get('user'),
-          newMerchant,
-          request.object
-        );
-        //TODO: Eliminar ticket en la relacion Usuario/Merchant/Ticket
-      } else {
-        const autonomoMerchantTicket = new Parse.Object('AutomoTicketMerchant');
-        const autonomoMerchantTicketACL = new Parse.ACL();
-        autonomoMerchantTicketACL.setPublicWriteAccess(false);
-        autonomoMerchantTicketACL.setPublicReadAccess(false);
-        autonomoMerchantTicketACL.setRoleWriteAccess('Admin', true);
-        autonomoMerchantTicketACL.setRoleReadAccess('Admin', true);
-        autonomoMerchantTicket.setACL(autonomoMerchantTicketACL);
-        autonomoMerchantTicket.set('autonomo', request.object.get('user'));
-        autonomoMerchantTicket.set('merchant', newMerchant);
-        autonomoMerchantTicket.set('tickets', [request.object]);
-        autonomoMerchantTicket.save();
-      }
-    }
+    logger.error('delete');
+    await deleteTicketFromAutonomoMerchantRelationIfExsist(
+      request.object.get('user'),
+      newMerchant,
+      request.object
+    );
+
+    // if (newStatus !== oldStatus) {
+    //   if (newStatus !== 'AP') {
+    //     await deleteTicketFromAutonomoMerchantRelationIfExsist(
+    //       request.object.get('user'),
+    //       newMerchant,
+    //       request.object
+    //     );
+    //     //TODO: Eliminar ticket en la relacion Usuario/Merchant/Ticket
+    //   } else {
+    //     const autonomoMerchantTicket = new Parse.Object('AutomoTicketMerchant');
+    //     const autonomoMerchantTicketACL = new Parse.ACL();
+    //     autonomoMerchantTicketACL.setPublicWriteAccess(false);
+    //     autonomoMerchantTicketACL.setPublicReadAccess(false);
+    //     autonomoMerchantTicketACL.setRoleWriteAccess('Admin', true);
+    //     autonomoMerchantTicketACL.setRoleReadAccess('Admin', true);
+    //     autonomoMerchantTicket.setACL(autonomoMerchantTicketACL);
+    //     autonomoMerchantTicket.set('autonomo', request.object.get('user'));
+    //     autonomoMerchantTicket.set('merchant', newMerchant);
+    //     autonomoMerchantTicket.set('tickets', [request.object]);
+    //     autonomoMerchantTicket.save();
+    //   }
+    // }
 
     if (newMerchant !== oldMerchant) {
       //TODO: Eliminar ticket de la relacion
