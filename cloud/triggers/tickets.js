@@ -6,14 +6,8 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
       var Votes = Parse.Object.extend('Tickets');
       var oldVote = new Votes();
       oldVote.set('objectId', request.object.id);
-      oldVote.fetch({
-        success: function(oldVote) {
-          request.log.error('ER - Request: ', oldVote);
-        },
-        error: function(oldVote, error) {
-          request.log.error('ER - Error: ', error.message);
-        }
-      });
+      const result = await oldVote.fetch();
+      request.log.error('Request: ', result);
       // break;
     }
     //   }
