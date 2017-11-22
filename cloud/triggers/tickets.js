@@ -12,14 +12,14 @@ async function getAutonomoMerchantTicket(autnomo, merchant) {
   }
 }
 
-Parse.Cloud.beforeSave('Tickets', function(request, response) {
-  request.log.error(
-    `Merchant: ${JSON.stringify(
-      request.object.dirty('merchant')
-    )}, Status: ${JSON.stringify(request.object.dirty('status'))}`
-  );
-  response.success();
-});
+// Parse.Cloud.beforeSave('Tickets', function(request, response) {
+//   request.log.error(
+//     `Merchant: ${JSON.stringify(
+//       request.object.dirty('merchant')
+//     )}, Status: ${JSON.stringify(request.object.dirty('status'))}`
+//   );
+//   response.success();
+// });
 
 Parse.Cloud.afterSave('Tickets', async function(request) {
   try {
@@ -28,15 +28,17 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
     const newStatus = request.original.get('status');
     const oldStatus = request.object.get('status');
 
-    const changedMerchant = request.object.dirty('merchant');
-    const changedStatus = request.object.dirty('status');
+    const changedMerchant =
+      request.object.dirty('merchant') !== request.original.get('merchant');
 
     if (changedMerchant) {
       request.log.error('Se ha cambiado el merchant');
     }
 
-    if (changedStatus) {
-      request.log.error('Se ha cambiado el status');
+    if (newStatus !== oldStatus) {
+      request.log.error(
+        `Se ha cambiado el status ${oldStatus} por el estatus ${newStatus}`
+      );
     }
 
     if (request.object.get('status') === 'AP') {
