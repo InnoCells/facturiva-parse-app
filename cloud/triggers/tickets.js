@@ -1,7 +1,7 @@
 Parse.Cloud.beforeSave('Tickets', function(request, response) {
   try {
-    request.log.error('currentObject: ', request.object);
-    request.log.error('originalObject: ', request.original);
+    request.log.error('currentObject: ', request.object.id);
+    request.log.error('originalObject: ', request.original.id);
     response.success();
   } catch (error) {
     response.error('Error on beforeSave: ', error);
