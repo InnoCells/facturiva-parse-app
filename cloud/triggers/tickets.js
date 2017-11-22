@@ -24,7 +24,7 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
 
 Parse.Cloud.afterSave('Tickets', async function(request) {
   try {
-    request.log.info('Original: ', JSON.stringify(request.original));
+    request.log.info('Original: ', JSON.stringify(request));
     const ticketQuery = new Parse.Query('Tickets');
     ticketQuery.equalTo('objectId', request.object.id);
     ticketQuery.include('user');
