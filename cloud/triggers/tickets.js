@@ -22,7 +22,7 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
     request.log.error(JSON.stringify(request.object.dirtyKeys()));
     const changedMerchant =
       request.original.get('merchant') !== request.object.get('merchant');
-      const change
+
     if (changedMerchant) {
       request.log.error('Se ha cambiado el merchant');
     }
