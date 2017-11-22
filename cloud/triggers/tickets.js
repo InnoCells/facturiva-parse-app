@@ -19,7 +19,9 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
     const newStatus = request.original.get('status');
     const oldStatus = request.object.get('status');
 
-    request.log.error(request.object.dirtyKeys().toString());
+    request.log.error('Dirty Merchant: ', request.object.dirty('merchant'));
+    request.log.error('Dirty user: ', request.object.dirty('user'));
+
     const changedMerchant =
       request.original.get('merchant') !== request.object.get('merchant');
 
