@@ -8,8 +8,9 @@ async function savedField(objectId) {
 Parse.Cloud.beforeSave('Tickets', function(request, response) {
   try {
     request.log.error('Id: ', request.object.id);
-    const result = await savedField(request.object.id);
-    request.log.error('result: ', result);
+    savedField(request.object.id).then(function(savedObject) {
+      request.log.error('result: ', savedObject);
+    });
 
     // if (!request.object.isNew()) {
     //   var query = new Parse.Query('Tickets');
