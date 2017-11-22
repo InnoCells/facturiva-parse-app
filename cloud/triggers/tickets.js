@@ -22,9 +22,21 @@ async function deleteTicketFromAutonomoMerchantRelationIfExsist(
 ) {
   try {
     logger.error(`Merchant pointer: ${JSON.stringify(ticket.get('merchant'))}`);
+
     const query = new Parse.Query('Merchant');
     query.equalTo('objectId', merchant.id);
-    const result = await query.first();
+    const merchantResult = await query.first();
+
+    const queryA = new Parse.Query('User');
+    queryA.equalTo('objectId', autnomo.id);
+    const autonomoResult = await queryA.first();
+
+    const autonomoMerchant = new Parse.Query('AutomoTicketMerchant');
+    autonomoMerchant.equalTo('autonomo', autonomoResult);
+    autonomoMerchant.equalTo('merchant', merchantResult);
+
+    const result = await autonomoMerchant.first();
+
     logger.error(`Merchant response: ${result.get('nombre')}`);
     // const merchant = new Parse.Query('Merchant');
     // const result = await merchant.fetch();
