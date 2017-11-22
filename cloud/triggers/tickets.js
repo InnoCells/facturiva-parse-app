@@ -21,18 +21,22 @@ async function deleteTicketFromAutonomoMerchantRelationIfExsist(
   logger
 ) {
   try {
-    logger.error(`Query`);
-    const query = new Parse.Query('AutomoTicketMerchant');
-    query.include('tickets');
-    query.equalTo('autonomo', autnomo);
-    query.equalTo('merchant', merchant);
-
-    const result = await query.first();
-    logger.error(`PostQuery ${result}`);
-    // if (result) {
-    const indexArray = _.indexOf(result.get('tickets'), ticket);
-    logger.error(`Index array: ${indexArray}`);
-    // }
+    const Merchant = Parse.Object.extend('Merchant');
+    const merchant = new Merchant();
+    merchant.set('objectId', merchant.id);
+    const result = await merchant.fetch();
+    logger.error(`Merchant result: ${result}`);
+    // logger.error(`Query`);
+    // const query = new Parse.Query('AutomoTicketMerchant');
+    // query.include('tickets');
+    // query.equalTo('autonomo', autnomo);
+    // query.equalTo('merchant', merchant);
+    // const result = await query.first();
+    // logger.error(`PostQuery ${result}`);
+    // // if (result) {
+    // const indexArray = _.indexOf(result.get('tickets'), ticket);
+    // logger.error(`Index array: ${indexArray}`);
+    // // }
   } catch (error) {
     logger.error(
       `Error on deleteTicketFromAutonomoMerchantRelationIfExsist ${error}`
