@@ -1,33 +1,29 @@
 Parse.Cloud.beforeSave('Tickets', async function(request, response) {
-  try {
-    const newMerchant = request.object.get('merchant').id;
-    const oldMerchant = request.original.get('merchant').id;
-    const owner = request.object.get('user');
-
-    if (newMerchant !== oldMerchant) {
-      request.log.error('Se han cambiado los merchants');
-
-      const query = new Parse.Query('AutomoTicketMerchant');
-      query.include('tickets');
-      query.equalTo('autonomo', owner);
-      query.equalTo('merchant', oldMerchant);
-
-      const result = await query.first();
-      request.log.error(
-        'Query AutonomoTicketMerchant: ',
-        JSON.stringify(result.id)
-      );
-    }
-
-    response.success();
-  } catch (error) {
-    response.error('Error on beforeSave: ', error);
-  }
+  // try {
+  //   const newMerchant = request.object.get('merchant').id;
+  //   const oldMerchant = request.original.get('merchant').id;
+  //   const owner = request.object.get('user');
+  //   if (newMerchant !== oldMerchant) {
+  //     request.log.error('Se han cambiado los merchants');
+  //     const query = new Parse.Query('AutomoTicketMerchant');
+  //     query.include('tickets');
+  //     query.equalTo('autonomo', owner);
+  //     query.equalTo('merchant', oldMerchant);
+  //     const result = await query.first();
+  //     request.log.error(
+  //       'Query AutonomoTicketMerchant: ',
+  //       JSON.stringify(result.id)
+  //     );
+  //   }
+  //   response.success();
+  // } catch (error) {
+  //   response.error('Error on beforeSave: ', error);
+  // }
 });
 
 Parse.Cloud.afterSave('Tickets', async function(request) {
   try {
-    request.log.info('Request: ', request.object.id);
+    request.log.info('Original: ', request.original.id);
     const ticketQuery = new Parse.Query('Tickets');
     ticketQuery.equalTo('objectId', request.object.id);
     ticketQuery.include('user');
