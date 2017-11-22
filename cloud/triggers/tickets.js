@@ -65,7 +65,7 @@ async function deleteTicketFromAutonomoMerchantRelationIfExsist(
 
 Parse.Cloud.afterSave('Tickets', async function(request) {
   try {
-    if (request.object.isNew()) return;
+    // if (request.object.isNew()) return;
 
     const logger = request.log;
 
