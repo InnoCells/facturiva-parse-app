@@ -21,6 +21,7 @@ async function deleteTicketFromAutonomoMerchantRelationIfExsist(
   logger
 ) {
   try {
+    logger.error(`Merchant pointer: ${JSON.stringify(ticket.get('merchant'))}`);
     const query = new Parse.Query('Merchant');
     query.equalTo('objectId', merchant.id);
     const result = await query.first();
@@ -62,7 +63,7 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
     const oldMerchant = request.object.get('merchant');
 
     logger.error('delete');
-    await deleteTicketFromAutonomoMerchantRelationIfExsist(
+    const res = await deleteTicketFromAutonomoMerchantRelationIfExsist(
       autonomo,
       newMerchant,
       request.object,
