@@ -1,5 +1,6 @@
 Parse.Cloud.beforeSave('Tickets', function(request, response) {
   try {
+    request.log.error('Id: ', request.object.id);
     if (!request.object.isNew()) {
       var query = new Parse.Query('Tickets');
       query.get(request.object.id, {
