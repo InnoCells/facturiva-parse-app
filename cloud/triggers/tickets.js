@@ -39,7 +39,9 @@ async function deleteTicketFromAutonomoMerchantRelationIfExsist(
     // // }
   } catch (error) {
     logger.error(
-      `Error on deleteTicketFromAutonomoMerchantRelationIfExsist ${error}`
+      `Error on deleteTicketFromAutonomoMerchantRelationIfExsist ${JSON.stringify(
+        error
+      )}`
     );
   }
 }
