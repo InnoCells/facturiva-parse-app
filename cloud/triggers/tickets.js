@@ -49,7 +49,8 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
 
     if (newStatus !== oldStatus) {
       if (newStatus !== 'AP') {
-        deleteTicketFromAutonomoMerchantRelationIfExsist(
+        logger.error('se ha cambiado el status');
+        await deleteTicketFromAutonomoMerchantRelationIfExsist(
           request.object.get('user'),
           newMerchant,
           request.object
