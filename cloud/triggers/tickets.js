@@ -21,7 +21,7 @@ async function deleteTicketFromAutonomoMerchantRelationIfExsist(
   logger
 ) {
   try {
-    logger.error(`Merchant pointer: ${JSON.stringify(ticket.get('merchant'))}`);
+    logger.error(`Merchant pointer: `);
 
     const query = new Parse.Query('Merchant');
     query.equalTo('objectId', merchant.id);
