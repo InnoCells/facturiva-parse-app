@@ -1,36 +1,7 @@
-function savedField(objectId, logger) {
-  var ticketObj = new Parse.Object('Tickets');
-  ticketObj.set('objectId', objectId);
-  logger.error('TicketObj:', ticketObj);
-  return ticketObj.fetch().then(function(ticket) {
-    logger.error('savedField:', ticket);
-    return ticket;
-  });
-}
-
-Parse.Cloud.beforeSave('Tickets', function(request, response) {
+Parse.Cloud.beforeSave('Tickets', async function(request, response) {
   try {
-    request.log.error('Id: ', request.object.id);
-    savedField(request.object.id, request.log).then(
-      function(ticket) {
-        request.log.error('result: ', ticket);
-      },
-      function(error) {
-        request.log.error('error: ', error);
-      }
-    );
-
-    // if (!request.object.isNew()) {
-    //   var query = new Parse.Query('Tickets');
-    //   query.get(request.object.id, {
-    //     success: function(row) {
-    //       request.log.error('Success: ', result);
-    //     },
-    //     error: function(row, error) {
-    //       request.log.error('Error: ', error.message);
-    //     }
-    //   });
-    // }
+    request.log.error('currentObject: ', JSON.parse(request.object));
+    request.log.error('originalObject: ', JSON.parse(request.original));
     response.success();
   } catch (error) {
     response.error('Error on beforeSave: ', error);
