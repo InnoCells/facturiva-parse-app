@@ -1,8 +1,10 @@
-async function savedField(objectId, logger) {
-  var query = new Parse.Query('Tickets');
-  return query.get(objectId).then(function(savedObject) {
-    logger.error('savedField:', savedObject);
-    return savedObject;
+function savedField(objectId, logger) {
+  var ticketObj = new Parse.Object('Tickets');
+  ticketObj.set('objectId', objectId);
+  logger.error('TicketObj:', ticketObj);
+  return ticketObj.fetch().then(function(ticket) {
+    logger.error('savedField:', ticket);
+    return ticket;
   });
 }
 
@@ -10,8 +12,8 @@ Parse.Cloud.beforeSave('Tickets', function(request, response) {
   try {
     request.log.error('Id: ', request.object.id);
     savedField(request.object.id, request.log).then(
-      function(savedObject) {
-        request.log.error('result: ', savedObject);
+      function(ticket) {
+        request.log.error('result: ', ticket);
       },
       function(error) {
         request.log.error('error: ', error);
