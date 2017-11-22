@@ -68,6 +68,6 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
       //TODO: Eliminar ticket de la relacion
     }
   } catch (error) {
-    request.log.error('Error on afterSave Tickets', error);
+    request.log.error(`Error on afterSave Tickets ${error}`);
   }
 });
