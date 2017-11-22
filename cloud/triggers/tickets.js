@@ -23,9 +23,9 @@ async function deleteTicketFromAutonomoMerchantRelationIfExsist(
   try {
     const Merchant = Parse.Object.extend('Merchant');
     const merchant = new Merchant();
-    merchant.set('objectId', merchant.get('objectId'));
+    merchant.set('objectId', merchant.id);
     const result = await merchant.fetch();
-    logger.error(`Merchant result: ${result}`);
+    logger.error(`Merchant result: ${JSON.stringify(result)}`);
     // logger.error(`Query`);
     // const query = new Parse.Query('AutomoTicketMerchant');
     // query.include('tickets');
