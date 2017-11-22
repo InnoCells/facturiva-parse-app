@@ -77,7 +77,7 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
     const oldMerchant = request.object.get('merchant');
 
     logger.error('delete');
-    const res = await deleteTicketFromAutonomoMerchantRelationIfExsist(
+    await deleteTicketFromAutonomoMerchantRelationIfExsist(
       autonomo,
       newMerchant,
       request.object,
