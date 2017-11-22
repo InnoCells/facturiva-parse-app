@@ -19,7 +19,7 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
     const newStatus = request.original.get('status');
     const oldStatus = request.object.get('status');
 
-    request.log.error(JSON.stringify(request.object.dirtyKeys()));
+    request.log.error(request.object.dirtyKeys().toString());
     const changedMerchant =
       request.original.get('merchant') !== request.object.get('merchant');
 
