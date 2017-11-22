@@ -21,12 +21,10 @@ async function deleteTicketFromAutonomoMerchantRelationIfExsist(
   logger
 ) {
   try {
-    logger.error(`Merchant request: ${JSON.stringify(merchant.id)}`);
-
     const query = new Parse.Query('Merchant');
     query.equalTo('objectId', merchant.id);
     const result = await query.first();
-    logger.error(`Merchant response: ${JSON.stringify(result.get('nombre'))}`);
+    logger.error(`Merchant response: ${result.get('nombre')}`);
     // const merchant = new Parse.Query('Merchant');
     // const result = await merchant.fetch();
     // logger.error(`Merchant result: ${JSON.stringify(result)}`);
