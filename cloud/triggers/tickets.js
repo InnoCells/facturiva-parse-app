@@ -47,10 +47,6 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
     const newMerchant = request.original.get('merchant');
     const oldMerchant = request.object.get('merchant');
 
-    if (changedMerchant) {
-      request.log.error('Se ha cambiado el merchant');
-    }
-
     if (newStatus !== oldStatus) {
       if (newStatus !== 'AP') {
         deleteTicketFromAutonomoMerchantRelationIfExsist(
