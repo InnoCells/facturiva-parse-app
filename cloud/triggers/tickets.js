@@ -19,11 +19,12 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
   // } catch (error) {
   //   response.error('Error on beforeSave: ', error);
   // }
+  response.success();
 });
 
 Parse.Cloud.afterSave('Tickets', async function(request) {
   try {
-    request.log.info('Original: ', request.original.id);
+    request.log.info('Original: ', JSON.stringify(request.original.id);
     const ticketQuery = new Parse.Query('Tickets');
     ticketQuery.equalTo('objectId', request.object.id);
     ticketQuery.include('user');
