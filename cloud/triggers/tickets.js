@@ -1,20 +1,16 @@
-Parse.Cloud.beforeSave('Tickets', async function(request, response) {
+Parse.Cloud.beforeSave('Tickets', function(request, response) {
   try {
     if (!request.object.isNew()) {
-      // for (dirtyKey in request.object.dirtyKeys()) {
-      //   if (dirtyKey === "merchant") {
-      // var Votes = Parse.Object.extend('Tickets');
-      // var oldVote = new Votes();
-      // oldVote.set('objectId', request.object.id);
-      // const result = await oldVote.fetch();
-      // request.log.error('Request: ', result);
-      // break;
-      const query = new Parse.Query('Tickets');
-      const result = await query.get(request.object.id);
-      request.log.error('Response: ', result);
+      var query = new Parse.Query('Tickets');
+      query.get(request.object.id, {
+        success: function(row) {
+          request.log.error('Success: ', result);
+        },
+        error: function(row, error) {
+          request.log.error('Error: ', error.message);
+        }
+      });
     }
-    //   }
-    // }
     response.success();
   } catch (error) {
     response.error('Error on beforeSave: ', error);
