@@ -10,7 +10,7 @@ Parse.Cloud.beforeSave('Tickets', async function(request, response) {
       // request.log.error('Request: ', result);
       // break;
       const query = new Parse.Query('Tickets');
-      const result = query.get(request.object.id);
+      const result = await query.get(request.object.id);
       request.log.error('Response: ', result);
     }
     //   }
