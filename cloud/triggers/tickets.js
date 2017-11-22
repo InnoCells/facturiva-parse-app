@@ -19,14 +19,15 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
     const newStatus = request.original.get('status');
     const oldStatus = request.object.get('status');
 
-    request.log.error('Dirty Merchant: ', request.object.dirty('merchant'));
-    request.log.error('Dirty user: ', request.object.dirty('user'));
-
-    const changedMerchant =
-      request.original.get('merchant') !== request.object.get('merchant');
+    const changedMerchant = request.object.dirty('merchant');
+    const changedStatus = request.object.dirty('status');
 
     if (changedMerchant) {
       request.log.error('Se ha cambiado el merchant');
+    }
+
+    if (changedStatus) {
+      request.log.error('Se ha cambiado el status');
     }
 
     if (request.object.get('status') === 'AP') {
