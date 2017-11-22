@@ -21,13 +21,14 @@ async function deleteTicketFromAutonomoMerchantRelationIfExsist(
   logger
 ) {
   try {
+    logger.error(`Query`);
     const query = new Parse.Query('AutomoTicketMerchant');
     query.include('tickets');
     query.equalTo('autonomo', autnomo);
     query.equalTo('merchant', merchant);
 
     const result = await query.first();
-
+    logger.error(`PostQuery ${result}`);
     // if (result) {
     const indexArray = _.indexOf(result.get('tickets'), ticket);
     logger.error(`Index array: ${indexArray}`);
@@ -45,6 +46,7 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
 
     const logger = request.log;
 
+    const autonomo = request.object.get('user');
     const newStatus = request.original.get('status');
     const oldStatus = request.object.get('status');
 
@@ -53,7 +55,7 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
 
     logger.error('delete');
     await deleteTicketFromAutonomoMerchantRelationIfExsist(
-      request.object.get('user'),
+      autonomo,
       newMerchant,
       request.object
     );
