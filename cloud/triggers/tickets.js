@@ -57,7 +57,8 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
     await deleteTicketFromAutonomoMerchantRelationIfExsist(
       autonomo,
       newMerchant,
-      request.object
+      request.object,
+      logger
     );
 
     // if (newStatus !== oldStatus) {
