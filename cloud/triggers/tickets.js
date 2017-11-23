@@ -1,11 +1,22 @@
 const _ = require('lodash');
 
-async function getAutonomoMerchantTicket(autnomo, merchant) {
+function getDataFacturacion(ticketDate) {
+  if (ticketDate) {
+    const month = ticketDate.getMonth();
+    const year = ticketDate.getFullYear();
+    const date = new Date(Date.UTC(year, month + 1, 0, 0, 0, 0, 0));
+    return date;
+  }
+  return null;
+}
+
+async function getAutonomoMerchantTicket(autonomo, merchant, mesFacturacion) {
   try {
-    const query = new Parse.Query('AutomoTicketMerchant');
+    const query = new Parse.Query('AutonomoTicketMerchant');
     query.include('tickets');
     query.equalTo('autonomo', autonomo);
     query.equalTo('merchant', merchant);
+    query.equalTo('mesFacturacion', mesFacturacion);
 
     const result = await query.first();
     return result;
@@ -14,101 +25,142 @@ async function getAutonomoMerchantTicket(autnomo, merchant) {
   }
 }
 
-async function deleteTicketFromAutonomoMerchantRelationIfExsist(
-  autnomo,
+function exsistTicketInArray(ticketArray, ticket) {
+  let result = { exsist: false, index: -1 };
+  try {
+    _.map(ticketArray, (ticketArrayItem, index) => {
+      if (ticketArrayItem.id === ticket.id) {
+        result = { exsist: true, index: index };
+        return true;
+      }
+    });
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function insertAutonomoMerchantTicket(
+  autonomo,
   merchant,
   ticket,
   logger
 ) {
   try {
-    logger.error(`Merchant pointer: `);
-
-    const query = new Parse.Query('Merchant');
-    query.equalTo('objectId', merchant.id);
-    const merchantResult = await query.first();
-
-    const queryA = new Parse.Query('User');
-    queryA.equalTo('objectId', autnomo.id);
-    const autonomoResult = await queryA.first();
-
-    const autonomoMerchant = new Parse.Query('AutomoTicketMerchant');
-    autonomoMerchant.equalTo('autonomo', autonomoResult);
-    autonomoMerchant.equalTo('merchant', merchantResult);
-
-    const result = await autonomoMerchant.first();
-
-    await result.destroy();
-
-    logger.error(`Merchant response: ${result.get('nombre')}`);
-    // const merchant = new Parse.Query('Merchant');
-    // const result = await merchant.fetch();
-    // logger.error(`Merchant result: ${JSON.stringify(result)}`);
-    // logger.error(`Query`);
-    // const query = new Parse.Query('AutomoTicketMerchant');
-    // query.include('tickets');
-    // query.equalTo('autonomo', autnomo);
-    // query.equalTo('merchant', merchant);
-    // const result = await query.first();
-    // logger.error(`PostQuery ${result}`);
-    // // if (result) {
-    // const indexArray = _.indexOf(result.get('tickets'), ticket);
-    // logger.error(`Index array: ${indexArray}`);
-    // // }
-  } catch (error) {
-    logger.error(
-      `Error on deleteTicketFromAutonomoMerchantRelationIfExsist ${JSON.stringify(
-        error
-      )}`
+    const mesFacturacion = getDataFacturacion(ticket.get('fecha'));
+    const result = await getAutonomoMerchantTicket(
+      autonomo,
+      merchant,
+      mesFacturacion
     );
+
+    if (result) {
+      const exsistTicket = exsistTicketInArray(result.get('tickets'), ticket);
+      if (!exsistTicket.exsist) {
+        result.get('tickets').push(ticket);
+        result.save();
+      }
+    } else {
+      const autnonomoMerchantTicket = new Parse.Object(
+        'AutonomoTicketMerchant'
+      );
+      const autnonomoMerchantTicketACL = new Parse.ACL();
+      autnonomoMerchantTicketACL.setPublicWriteAccess(true);
+      autnonomoMerchantTicketACL.setPublicReadAccess(true);
+      autnonomoMerchantTicketACL.setRoleWriteAccess('Admin', true);
+      autnonomoMerchantTicketACL.setRoleReadAccess('Admin', true);
+      autnonomoMerchantTicket.setACL(autnonomoMerchantTicketACL);
+      autnonomoMerchantTicket.set('autonomo', autonomo);
+      autnonomoMerchantTicket.set('merchant', merchant);
+      autnonomoMerchantTicket.set('tickets', [ticket]);
+      autnonomoMerchantTicket.set('mesFacturacion', mesFacturacion);
+      autnonomoMerchantTicket.save();
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function removeTicketFromArray(autonomo, merchant, ticket, logger) {
+  try {
+    const autonomoMerchantTickets = await getAutonomoMerchantTicket(
+      autonomo,
+      merchant,
+      getDataFacturacion(ticket.get('fecha'))
+    );
+
+    if (autonomoMerchantTickets) {
+      const exsistTicket = exsistTicketInArray(
+        autonomoMerchantTickets.get('tickets'),
+        ticket
+      );
+      if (exsistTicket.exsist) {
+        autonomoMerchantTickets.get('tickets').splice(exsistTicket.index, 1);
+        const res = autonomoMerchantTickets.get('tickets').length;
+        if (res === 0) {
+          await autonomoMerchantTickets.destroy();
+        } else {
+          await autonomoMerchantTickets.save();
+        }
+      }
+    }
+  } catch (error) {
+    throw error;
   }
 }
 
 Parse.Cloud.afterSave('Tickets', async function(request) {
   try {
-    // if (request.object.isNew()) return;
+    if (request.object.isNew()) return;
 
     const logger = request.log;
 
     const autonomo = request.object.get('user');
-    const newStatus = request.original.get('status');
-    const oldStatus = request.object.get('status');
 
-    const newMerchant = request.original.get('merchant');
-    const oldMerchant = request.object.get('merchant');
+    const newFecha = request.object.get('fecha');
+    const oldFecha = request.original.get('fecha');
 
-    logger.error('delete');
-    await deleteTicketFromAutonomoMerchantRelationIfExsist(
-      autonomo,
-      newMerchant,
-      request.object,
-      logger
-    );
+    const newStatus = request.object.get('status');
+    const oldStatus = request.original.get('status');
 
-    // if (newStatus !== oldStatus) {
-    //   if (newStatus !== 'AP') {
-    //     await deleteTicketFromAutonomoMerchantRelationIfExsist(
-    //       request.object.get('user'),
-    //       newMerchant,
-    //       request.object
-    //     );
-    //     //TODO: Eliminar ticket en la relacion Usuario/Merchant/Ticket
-    //   } else {
-    //     const autonomoMerchantTicket = new Parse.Object('AutomoTicketMerchant');
-    //     const autonomoMerchantTicketACL = new Parse.ACL();
-    //     autonomoMerchantTicketACL.setPublicWriteAccess(false);
-    //     autonomoMerchantTicketACL.setPublicReadAccess(false);
-    //     autonomoMerchantTicketACL.setRoleWriteAccess('Admin', true);
-    //     autonomoMerchantTicketACL.setRoleReadAccess('Admin', true);
-    //     autonomoMerchantTicket.setACL(autonomoMerchantTicketACL);
-    //     autonomoMerchantTicket.set('autonomo', request.object.get('user'));
-    //     autonomoMerchantTicket.set('merchant', newMerchant);
-    //     autonomoMerchantTicket.set('tickets', [request.object]);
-    //     autonomoMerchantTicket.save();
-    //   }
-    // }
+    const newMerchant = request.object.get('merchant');
+    const oldMerchant = request.original.get('merchant');
 
-    if (newMerchant !== oldMerchant) {
-      //TODO: Eliminar ticket de la relacion
+    if (newStatus !== oldStatus || oldMerchant.id !== newMerchant.id) {
+      if (newStatus === 'AP') {
+        await insertAutonomoMerchantTicket(
+          autonomo,
+          newMerchant,
+          request.object,
+          logger
+        );
+      }
+      if (oldStatus === 'AP') {
+        await removeTicketFromArray(
+          autonomo,
+          oldMerchant,
+          request.object,
+          logger
+        );
+      }
+    }
+
+    if (oldMerchant.id !== newMerchant.id) {
+      await removeTicketFromArray(
+        autonomo,
+        oldMerchant,
+        request.object,
+        logger
+      );
+    }
+
+    if (newFecha.toUTCString() !== oldFecha.toUTCString()) {
+      await removeTicketFromArray(
+        autonomo,
+        oldMerchant,
+        request.original,
+        logger
+      );
     }
   } catch (error) {
     request.log.error(`Error on afterSave Tickets ${error}`);

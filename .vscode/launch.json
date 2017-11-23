@@ -1,0 +1,37 @@
+{
+  // Utilizar IntelliSense para aprender acerca de los posibles atributos.
+  // Mantenga el puntero para ver las descripciones de los existentes atributos
+  // Para más información, visite: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch via NPM",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start"],
+      "port": 9229
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach",
+      "port": 9229
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "start",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run-script", "debug"],
+      "port": 9229
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Chrome against localhost",
+      "url": "http://localhost:8080",
+      "webRoot": "${workspaceRoot}"
+    }
+  ]
+}
