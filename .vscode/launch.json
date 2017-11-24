@@ -11,27 +11,6 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start"],
       "port": 9229
-    },
-    {
-      "type": "node",
-      "request": "attach",
-      "name": "Attach",
-      "port": 9229
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "start",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run-script", "debug"],
-      "port": 9229
-    },
-    {
-      "type": "chrome",
-      "request": "launch",
-      "name": "Launch Chrome against localhost",
-      "url": "http://localhost:8080",
-      "webRoot": "${workspaceRoot}"
     }
   ]
 }

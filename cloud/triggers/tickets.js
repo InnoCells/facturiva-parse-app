@@ -21,7 +21,7 @@ async function getAutonomoMerchantTicket(autonomo, merchant, mesFacturacion) {
     const result = await query.first();
     return result;
   } catch (error) {
-    throw error;
+    throw new Error(error.message);
   }
 }
 
@@ -36,7 +36,7 @@ function exsistTicketInArray(ticketArray, ticket) {
     });
     return result;
   } catch (error) {
-    throw error;
+    throw new Error(error.message);
   }
 }
 
@@ -77,7 +77,7 @@ async function insertAutonomoMerchantTicket(
       autnonomoMerchantTicket.save();
     }
   } catch (error) {
-    throw error;
+    throw new Error(error.message);
   }
 }
 
@@ -105,7 +105,7 @@ async function removeTicketFromArray(autonomo, merchant, ticket, logger) {
       }
     }
   } catch (error) {
-    throw error;
+    throw new Error(error.message);
   }
 }
 
@@ -126,7 +126,10 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
     const newMerchant = request.object.get('merchant');
     const oldMerchant = request.original.get('merchant');
 
-    if (newStatus !== oldStatus || oldMerchant.id !== newMerchant.id) {
+    if (
+      newStatus !== oldStatus ||
+      (oldMerchant && newMerchant && oldMerchant.id !== newMerchant.id)
+    ) {
       if (newStatus === 'AP') {
         await insertAutonomoMerchantTicket(
           autonomo,
@@ -139,13 +142,13 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
         await removeTicketFromArray(
           autonomo,
           oldMerchant,
-          request.object,
+          request.original,
           logger
         );
       }
     }
 
-    if (oldMerchant.id !== newMerchant.id) {
+    if (oldMerchant && newMerchant && oldMerchant.id !== newMerchant.id) {
       await removeTicketFromArray(
         autonomo,
         oldMerchant,
@@ -154,7 +157,11 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
       );
     }
 
-    if (newFecha.toUTCString() !== oldFecha.toUTCString()) {
+    if (
+      oldFecha &&
+      newFecha &&
+      newFecha.toUTCString() !== oldFecha.toUTCString()
+    ) {
       await removeTicketFromArray(
         autonomo,
         oldMerchant,
@@ -163,6 +170,10 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
       );
     }
   } catch (error) {
-    request.log.error(`Error on afterSave Tickets ${error}`);
+    request.log.error(
+      `Error on afterSave Tickets: ticketId: ${request.object.id}, Error: ${
+        error
+      }`
+    );
   }
 });

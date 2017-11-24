@@ -30,5 +30,5 @@ node_modules
 
 # Emacs
 *~
-
-local.js
+.env
+local.jssendgrid.env
