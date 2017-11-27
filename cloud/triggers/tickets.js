@@ -128,7 +128,8 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
 
     if (
       newStatus !== oldStatus ||
-      (oldMerchant && newMerchant && oldMerchant.id !== newMerchant.id)
+      (oldMerchant && newMerchant && oldMerchant.id !== newMerchant.id) ||
+      (newFecha && oldFecha && newFecha.getMonth() !== oldFecha.getMonth())
     ) {
       if (newStatus === 'AP') {
         await insertAutonomoMerchantTicket(
@@ -157,11 +158,7 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
       );
     }
 
-    if (
-      oldFecha &&
-      newFecha &&
-      newFecha.toUTCString() !== oldFecha.toUTCString()
-    ) {
+    if (oldFecha && newFecha && newFecha.getMonth() !== oldFecha.getMonth()) {
       await removeTicketFromArray(
         autonomo,
         oldMerchant,

@@ -39,15 +39,3 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
     request.log.error('Error enviar mail: ', error.message);
   }
 });
-
-// email.setApiKey(process.env.SENDGRID_API_KEY);
-// const emailmessage = {
-//   from: 'sentfrom@yourdomain.com',
-//   to: 'ernest@partners.innocells.io',
-//   html: '<p></p>',
-//   subject: 'Password reset for Mish Guru',
-//   substitutions: { "-sub1-": "This is the new substitured text", "-sub2-": "Substitured text" }
-//   template_id: 'email_test_1',
-//   active: 1,
-//   name: 'example_version_name'
-// };
