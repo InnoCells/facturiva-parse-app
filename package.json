@@ -10,8 +10,12 @@
   "license": "MIT",
   "dependencies": {
     "buffer-shims": "^1.0.0",
+    "docx-to-pdf": "^1.1.0",
+    "docxtemplater": "^3.1.12",
     "dotenv": "^4.0.0",
     "express": "^4.13.4",
+    "fs": "0.0.1-security",
+    "jszip": "^2.6.1",
     "lodash": "^4.17.4",
     "parse-dashboard": "1.1.0",
     "parse-server": "2.3.x",
