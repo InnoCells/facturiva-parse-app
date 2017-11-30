@@ -1,36 +1,52 @@
 require('dotenv').config();
+const _ = require('lodash');
 const sendGrid = require('sendgrid')(process.env.SENDGRID_API_KEY);
+const fs = require('fs');
+const path = require('path');
+const generateDOCX = require('../cloud/generateDOCX');
+const generatePDF = require('../cloud/generatePDF');
+const logger = require('../logger');
 const InvoiceService = require('../services/InvoiceService');
-var request = require('request').defaults({ encoding: null });
-var logger = require('../logger');
+const ImageUtils = require('../utils/imageUtils');
 
-async function getImage(imageUrl) {
-  return new Promise(function(resolve, reject) {
-    request.get(imageUrl, function(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        const data =
-          'data:' +
-          response.headers['content-type'] +
-          ';base64,' +
-          new Buffer(body).toString('base64');
-        resolve(data);
-      } else {
-        resolve(null);
-      }
-    });
+async function generateModelForDocxInvoice(factura) {
+  const model = {};
+  model.hasImage = factura.merchant.logo ? true : false;
+  if (model.hasImage) {
+    model.imageData = await ImageUtils.getImageFromUrl(factura.merchant.logo);
+  }
+  model.emisor = {
+    nombre: factura.merchant.razonSocial,
+    nifCif: factura.merchant.nifCif,
+    calle: factura.merchant.direccion,
+    direccionCompleta: `${factura.merchant.codigoPostal}, ${
+      factura.merchant.localidad
+    }, ${factura.merchant.provincia}`
+  };
+  model.destinatario = { nombre: factura.autonomo.nombre };
+  model.tickets = [];
+  _.each(factura.tickets, ticket => {
+    const ticketModel = {
+      total: ticket.importe,
+      iva: ticket.porcentajeIVA
+    };
+    model.tickets.push(ticketModel);
   });
+  return model;
 }
 
 Parse.Cloud.job('generarFacturas', async (request, status) => {
   try {
     const result = await InvoiceService.getPending(Parse);
     for (var i = 0; i < result.length; i++) {
-      const json = JSON.stringify(result[i]);
-      console.log(json);
-      // const imageContent = await getImage(result[i].merchant.logo);
-      logger.error(`Merchant image url: ${result[i].merchant.logo}`);
+      const docxModel = await generateModelForDocxInvoice(result[i]);
 
-      const a = 0;
+      const doc = generateDOCX.createDocx('factura-template.docx', docxModel);
+      const pdf = await generatePDF.getPDF(doc);
+      fs.writeFileSync(path.resolve(__dirname, 'test.pdf'), pdf);
+
+      // const imageData = ImageUtils.getImageFromUrl(result[i].merchant.logo);
+      // const imageContent = await getImage(result[i].merchant.logo);
     }
   } catch (error) {
     console.log(error);
