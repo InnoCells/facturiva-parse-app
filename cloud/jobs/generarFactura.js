@@ -78,6 +78,43 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
       const pdf = await generatePDF.getPDF(doc);
       fs.writeFileSync(path.resolve(__dirname, 'test.pdf'), pdf);
 
+      const request = sendGrid.emptyRequest();
+      request.body = {
+        attachments: [
+          {
+            filename: 'Factura.pdf',
+            type: 'application/pdf',
+            disposition: 'attachment',
+            content: pdf.toString('base64')
+          }
+        ],
+        from: { email: 'info@facturiva.com', name: 'FacturIVA' },
+        personalizations: [
+          {
+            to: [
+              {
+                email: 'ernest@partners.innocells.io',
+                name: 'User'
+              }
+            ],
+            substitutions: {
+              '<%name%>': 'Ernest'
+            }
+          }
+        ],
+        subject: 'This is the subject',
+        template_id: '4f3febe7-7f55-4abd-acca-3f828172349a'
+      };
+
+      request.method = 'POST';
+      request.path = '/v3/mail/send';
+
+      sendGrid.API(request, function(error, response) {
+        console.log(response.statusCode);
+        console.log(response.body);
+        console.log(response.headers);
+      });
+
       // const imageData = ImageUtils.getImageFromUrl(result[i].merchant.logo);
       // const imageContent = await getImage(result[i].merchant.logo);
     }
