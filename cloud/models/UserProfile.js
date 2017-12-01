@@ -5,6 +5,7 @@ class UserProfile {
     this.poblacion = null;
     this.provincia = null;
     this.nifNie = null;
+    this.codigoPostal = null;
   }
 
   loadFromParseObject(parseUserProfile) {
@@ -14,6 +15,7 @@ class UserProfile {
     this.poblacion = parseUserProfile.get('poblacion');
     this.provincia = parseUserProfile.get('provincia');
     this.nifNie = parseUserProfile.get('nifNie');
+    this.codigoPostal = parseUserProfile.get('codigoPostal');
   }
 }
 

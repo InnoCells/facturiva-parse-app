@@ -10,6 +10,7 @@ async function getPending(parse) {
     query.include('merchant.invoiceMakers');
     query.include('merchant.logo');
     query.include('autonomo');
+    query.include('autonomo.userProfile');
     query.include('tickets');
     query.equalTo('status', 'N');
 

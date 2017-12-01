@@ -23,15 +23,48 @@ async function generateModelForDocxInvoice(factura) {
       factura.merchant.localidad
     }, ${factura.merchant.provincia}`
   };
-  model.destinatario = { nombre: factura.autonomo.nombre };
+  model.destinatario = {
+    nombre: factura.autonomo.userProfile.razonSocial,
+    nifCif: factura.autonomo.userProfile.nifNie,
+    calle: factura.autonomo.userProfile.domicilioSocial,
+    direccionCompleta: `${factura.autonomo.userProfile.codigoPostal}, ${
+      factura.autonomo.userProfile.poblacion
+    }, ${factura.autonomo.userProfile.provincia}`
+  };
   model.tickets = [];
+
   _.each(factura.tickets, ticket => {
+    const total = ticket.importe;
+    const ivaPercent = ticket.porcentajeIVA;
+    const tipoImpositivo = ivaPercent / 100 * total;
+    const baseImponible = total - tipoImpositivo;
+
     const ticketModel = {
-      total: ticket.importe,
-      iva: ticket.porcentajeIVA
+      total: total.toLocaleString('es-ES', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }),
+      ivaPercent: ivaPercent.toLocaleString('es-ES', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }),
+      tipoImpositivo: tipoImpositivo.toLocaleString('es-ES', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }),
+      baseImponible: baseImponible.toLocaleString('es-ES', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })
     };
     model.tickets.push(ticketModel);
   });
+
+  model.totales = {
+    // baseImponible: _.sumBy(factura.tickets, 'baseImponible'),
+    baseImponible: 0,
+    tipoImpositivo: 0
+  };
   return model;
 }
 

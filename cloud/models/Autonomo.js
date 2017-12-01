@@ -15,7 +15,7 @@ class Autonomo {
     this.email = parseAutonomo.get('email');
     if (parseAutonomo.get('userProfile')) {
       const userProfile = new UserProfile();
-      userProfile.loadFromParseObject(userProfile);
+      userProfile.loadFromParseObject(parseAutonomo.get('userProfile'));
       this.userProfile = userProfile;
     }
   }
