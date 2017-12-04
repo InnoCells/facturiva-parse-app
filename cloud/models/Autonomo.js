@@ -2,6 +2,7 @@ const UserProfile = require('./UserProfile');
 
 class Autonomo {
   constructor() {
+    this.id = null;
     this.nombre = null;
     this.apellidos = null;
     this.email = null;
@@ -10,6 +11,7 @@ class Autonomo {
 
   loadFromParseObject(parseAutonomo) {
     if (!parseAutonomo) return;
+    this.id = parseAutonomo.id;
     this.nombre = parseAutonomo.get('name');
     this.apellidos = parseAutonomo.get('surnames');
     this.email = parseAutonomo.get('email');

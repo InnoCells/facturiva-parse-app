@@ -10,6 +10,7 @@ const InvoiceService = require('../services/InvoiceService');
 const ImageUtils = require('../utils/imageUtils');
 const merchantUtils = require('../utils/merchantUtils');
 const dateUtils = require('../utils/dateUtils');
+const InsertDraftInvoiceRequest = require('../services/DTO/InsertDraftInvoiceRequest');
 
 async function generateModelForDocxInvoice(factura) {
   const model = {};
@@ -102,54 +103,63 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
         docxModel
       );
       const pdf = await generatePDF.getPDF(doc);
-      fs.writeFileSync(path.resolve(__dirname, 'test.pdf'), pdf);
 
-      if (process.env.ENVIRONMENT === 'Development') return;
+      const request = new InsertDraftInvoiceRequest();
+      request.autonomo = result[i].autonomo;
+      request.file = pdf;
+      request.merchant = result[i].merchant;
+      request.tickets = 'B';
+      request.tickets = result[i].tickets;
+      request.periodoFacturacion = result[i].mesFacturacion;
 
-      const request = sendGrid.emptyRequest();
-      request.body = {
-        attachments: [
-          {
-            filename: 'Factura.pdf',
-            type: 'application/pdf',
-            disposition: 'attachment',
-            content: pdf.toString('base64')
-          }
-        ],
-        from: { email: 'info@facturiva.com', name: 'FacturIVA' },
-        personalizations: [
-          {
-            to: [
-              {
-                email: 'ernest@partners.innocells.io',
-                name: 'User'
-              }
-            ],
-            substitutions: {
-              '<%name%>': 'Ernest'
-            }
-          }
-        ],
-        subject: 'This is the subject',
-        template_id: '4f3febe7-7f55-4abd-acca-3f828172349a'
-      };
+      const response = await InvoiceService.insertDraftInvoice(Parse, request);
 
-      request.method = 'POST';
-      request.path = '/v3/mail/send';
+      //   fs.writeFileSync(path.resolve(__dirname, 'test.pdf'), pdf);
 
-      sendGrid.API(request, function(error, response) {
-        console.log(response.statusCode);
-        console.log(response.body);
-        console.log(response.headers);
-        if (error) {
-          status.error('Error: ', error);
-        }
-      });
+      //   const request = sendGrid.emptyRequest();
+      //   request.body = {
+      //     attachments: [
+      //       {
+      //         filename: 'Factura.pdf',
+      //         type: 'application/pdf',
+      //         disposition: 'attachment',
+      //         content: pdf.toString('base64')
+      //       }
+      //     ],
+      //     from: { email: 'info@facturiva.com', name: 'FacturIVA' },
+      //     personalizations: [
+      //       {
+      //         to: [
+      //           {
+      //             email: 'ernest@partners.innocells.io',
+      //             name: 'User'
+      //           }
+      //         ],
+      //         substitutions: {
+      //           '<%name%>': 'Ernest'
+      //         }
+      //       }
+      //     ],
+      //     subject: 'This is the subject',
+      //     template_id: '4f3febe7-7f55-4abd-acca-3f828172349a'
+      //   };
 
-      status.success('Mail Enviado');
+      //   request.method = 'POST';
+      //   request.path = '/v3/mail/send';
 
-      // const imageData = ImageUtils.getImageFromUrl(result[i].merchant.logo);
-      // const imageContent = await getImage(result[i].merchant.logo);
+      //   sendGrid.API(request, function(error, response) {
+      //     console.log(response.statusCode);
+      //     console.log(response.body);
+      //     console.log(response.headers);
+      //     if (error) {
+      //       status.error('Error: ', error);
+      //     }
+      //   });
+
+      //   status.success('Mail Enviado');
+
+      //   // const imageData = ImageUtils.getImageFromUrl(result[i].merchant.logo);
+      //   // const imageContent = await getImage(result[i].merchant.logo);
     }
   } catch (error) {
     console.log(error);
