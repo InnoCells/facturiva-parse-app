@@ -98,11 +98,8 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
   try {
     const result = await InvoiceService.getPending(Parse);
     for (var i = 0; i < result.length; i++) {
-      // parse,
-      // merchantId,
-      // anyoFacturacion
       const anyoFacturacion = parseFloat(
-        request.periodoFacturacion
+        result[i].mesFacturacion
           .getFullYear()
           .toString()
           .substr(-2)

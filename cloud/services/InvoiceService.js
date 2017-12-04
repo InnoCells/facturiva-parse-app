@@ -128,7 +128,7 @@ async function getNextInvoiceIdByMerchantId(
     invoiceQuery.equalTo('anyoFacturacion', anyoFacturacion);
     invoiceQuery.descending('createdAt');
 
-    const result = await invoiceQuery.first();
+    const result = await invoiceQuery.first({ useMasterKey: true });
     if (result) {
       const lastNum = result.get('numeroFactura');
       let num = parseFloat(lastNum.substring(7, lastNum.length));
@@ -138,7 +138,9 @@ async function getNextInvoiceIdByMerchantId(
       return `FI${anyoFacturacion}00100001`;
     }
   } catch (error) {
-    logger.error(`Error on InvoiceService.getNextInvoiceId: ${error.message}`);
+    logger.error(
+      `Error on InvoiceService.getNextInvoiceIdByMerchantId: ${error.message}`
+    );
   }
 }
 
