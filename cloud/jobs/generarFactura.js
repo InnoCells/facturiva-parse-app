@@ -12,8 +12,10 @@ const merchantUtils = require('../utils/merchantUtils');
 const dateUtils = require('../utils/dateUtils');
 const InsertDraftInvoiceRequest = require('../services/DTO/InsertDraftInvoiceRequest');
 
-async function generateModelForDocxInvoice(factura) {
-  const model = {};
+async function generateModelForDocxInvoice(factura, facturaId) {
+  const model = {
+    facturaId: facturaId
+  };
   // model.hasImage = factura.merchant.logo ? true : false;
   model.hasImage = false;
   if (model.hasImage) {
@@ -96,7 +98,13 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
   try {
     const result = await InvoiceService.getPending(Parse);
     for (var i = 0; i < result.length; i++) {
-      const docxModel = await generateModelForDocxInvoice(result[i]);
+      const numeroFactura = await InvoiceService.getNextInvoiceIdByMerchantId(
+        result[i].merchant.id
+      );
+      const docxModel = await generateModelForDocxInvoice(
+        result[i],
+        numeroFactura
+      );
 
       const doc = generateDOCX.createDocx(
         'factura-borrador-template.docx',

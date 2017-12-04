@@ -57,13 +57,7 @@ async function insertDraftInvoice(parse, request) {
         .substr(-2)
     );
 
-    const invoiceNumber = await getNextInvoiceId(
-      parse,
-      merchant,
-      anyoFacturacion
-    );
-
-    newInvoice.set('numeroFactura', invoiceNumber);
+    newInvoice.set('numeroFactura', request.numeroFactura);
     newInvoice.set('anyoFacturacion', anyoFacturacion);
     newInvoice.set('mesFacturacion', request.periodoFacturacion.getMonth() + 1);
     let tickets = [];
@@ -122,8 +116,13 @@ async function getUserById(parse, userId) {
   }
 }
 
-async function getNextInvoiceId(parse, merchant, anyoFacturacion) {
+async function getNextInvoiceIdByMerchantId(
+  parse,
+  merchantId,
+  anyoFacturacion
+) {
   try {
+    const merchant = await getMerchantById(parse, merchantId);
     const invoiceQuery = new parse.Query('Facturas');
     invoiceQuery.equalTo('merchant', merchant);
     invoiceQuery.equalTo('anyoFacturacion', anyoFacturacion);
@@ -143,4 +142,8 @@ async function getNextInvoiceId(parse, merchant, anyoFacturacion) {
   }
 }
 
-module.exports = { getPending, insertDraftInvoice };
+module.exports = {
+  getPending,
+  insertDraftInvoice,
+  getNextInvoiceIdByMerchantId
+};
