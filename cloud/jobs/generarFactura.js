@@ -14,6 +14,9 @@ async function generateModelForDocxInvoice(factura) {
   model.hasImage = factura.merchant.logo ? true : false;
   if (model.hasImage) {
     model.imageData = await ImageUtils.getImageFromUrl(factura.merchant.logo);
+    // model.imageData = await ImageUtils.getImageFromUrl(
+    //   'https://facturivaparsedevstr.blob.core.windows.net/parse/e8f053b2e6f608299fe5d9cc7870939b_Mcdonalds_logo.png'
+    // );
   }
   model.emisor = {
     nombre: factura.merchant.razonSocial,
