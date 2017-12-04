@@ -108,7 +108,7 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
       request.autonomo = result[i].autonomo;
       request.file = pdf;
       request.merchant = result[i].merchant;
-      request.tickets = 'B';
+      request.tipo = 'B';
       request.tickets = result[i].tickets;
       request.periodoFacturacion = result[i].mesFacturacion;
 
