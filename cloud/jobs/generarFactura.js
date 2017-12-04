@@ -128,6 +128,7 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
       request.tipo = 'B';
       request.tickets = result[i].tickets;
       request.periodoFacturacion = result[i].mesFacturacion;
+      request.numeroFactura = numeroFactura;
 
       const response = await InvoiceService.insertDraftInvoice(Parse, request);
 
