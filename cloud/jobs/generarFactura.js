@@ -8,13 +8,16 @@ const generatePDF = require('../cloud/generatePDF');
 const logger = require('../logger');
 const InvoiceService = require('../services/InvoiceService');
 const ImageUtils = require('../utils/imageUtils');
+const merchantUtils = require('../utils/merchantUtils');
+const dateUtils = require('../utils/dateUtils');
 
 async function generateModelForDocxInvoice(factura) {
   const model = {};
-  model.hasImage = factura.merchant.logo ? true : false;
+  // model.hasImage = factura.merchant.logo ? true : false;
+  model.hasImage = false;
   if (model.hasImage) {
     model.imageData = await ImageUtils.getImageFromUrl(factura.merchant.logo);
-    // model.imageData = await ImageUtils.getImageFromUrl(
+    // model.image = await ImageUtils.getImageFromUrl(
     //   'https://facturivaparsedevstr.blob.core.windows.net/parse/e8f053b2e6f608299fe5d9cc7870939b_Mcdonalds_logo.png'
     // );
   }
@@ -24,7 +27,8 @@ async function generateModelForDocxInvoice(factura) {
     calle: factura.merchant.direccion,
     direccionCompleta: `${factura.merchant.codigoPostal}, ${
       factura.merchant.localidad
-    }, ${factura.merchant.provincia}`
+    }, ${factura.merchant.provincia}`,
+    tipo: merchantUtils.getMerchantType(factura.merchant.tipoMerchant)
   };
   model.destinatario = {
     nombre: factura.autonomo.userProfile.razonSocial,
@@ -34,7 +38,16 @@ async function generateModelForDocxInvoice(factura) {
       factura.autonomo.userProfile.poblacion
     }, ${factura.autonomo.userProfile.provincia}`
   };
+
+  const date = new Date();
+  date.setMonth(date.getMonth() - 1);
+  model.periodoFacturacion = dateUtils.getMonthYearString(date);
+  model.fecha = dateUtils.getStringFromDate(new Date());
   model.tickets = [];
+
+  let totalBaseImponible = 0;
+  let totalTipoImpositivo = 0;
+  let totalIvaIncluido = 0;
 
   _.each(factura.tickets, ticket => {
     const total = ticket.importe;
@@ -42,32 +55,39 @@ async function generateModelForDocxInvoice(factura) {
     const tipoImpositivo = ivaPercent / 100 * total;
     const baseImponible = total - tipoImpositivo;
 
+    totalBaseImponible += baseImponible;
+    totalTipoImpositivo += tipoImpositivo;
+    totalIvaIncluido += total;
+
     const ticketModel = {
-      total: total.toLocaleString('es-ES', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }),
-      ivaPercent: ivaPercent.toLocaleString('es-ES', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }),
-      tipoImpositivo: tipoImpositivo.toLocaleString('es-ES', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }),
-      baseImponible: baseImponible.toLocaleString('es-ES', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      })
+      total: (Math.round(total * 1000) / 1000)
+        .toFixed(2)
+        .toLocaleString('es-ES'),
+      ivaPercent: (Math.round(ivaPercent * 1000) / 1000)
+        .toFixed(2)
+        .toLocaleString('es-ES'),
+      tipoImpositivo: (Math.round(tipoImpositivo * 1000) / 1000)
+        .toFixed(2)
+        .toLocaleString('es-ES'),
+      baseImponible: (Math.round(baseImponible * 1000) / 1000)
+        .toFixed(2)
+        .toLocaleString('es-ES')
     };
     model.tickets.push(ticketModel);
   });
 
   model.totales = {
-    // baseImponible: _.sumBy(factura.tickets, 'baseImponible'),
-    baseImponible: 0,
-    tipoImpositivo: 0
+    baseImponible: (Math.round(totalBaseImponible * 1000) / 1000)
+      .toFixed(2)
+      .toLocaleString('es-ES'),
+    tipoImpositivo: (Math.round(totalTipoImpositivo * 1000) / 1000)
+      .toFixed(2)
+      .toLocaleString('es-ES'),
+    totalIvaIncluido: (Math.round(totalIvaIncluido * 1000) / 1000)
+      .toFixed(2)
+      .toLocaleString('es-ES')
   };
+
   return model;
 }
 
@@ -77,9 +97,14 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
     for (var i = 0; i < result.length; i++) {
       const docxModel = await generateModelForDocxInvoice(result[i]);
 
-      const doc = generateDOCX.createDocx('factura-template.docx', docxModel);
+      const doc = generateDOCX.createDocx(
+        'factura-borrador-template.docx',
+        docxModel
+      );
       const pdf = await generatePDF.getPDF(doc);
       fs.writeFileSync(path.resolve(__dirname, 'test.pdf'), pdf);
+
+      if (process.env.ENVIRONMENT === 'Development') return;
 
       const request = sendGrid.emptyRequest();
       request.body = {
