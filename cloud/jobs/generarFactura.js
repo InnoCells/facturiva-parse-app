@@ -99,6 +99,7 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
     const result = await InvoiceService.getPending(Parse);
     for (var i = 0; i < result.length; i++) {
       const numeroFactura = await InvoiceService.getNextInvoiceIdByMerchantId(
+        Parse,
         result[i].merchant.id
       );
       const docxModel = await generateModelForDocxInvoice(
