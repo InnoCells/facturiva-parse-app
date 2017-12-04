@@ -113,14 +113,19 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
         console.log(response.statusCode);
         console.log(response.body);
         console.log(response.headers);
+        if (error) {
+          status.error('Error: ', error);
+        }
       });
+
+      status.success('Mail Enviado');
 
       // const imageData = ImageUtils.getImageFromUrl(result[i].merchant.logo);
       // const imageContent = await getImage(result[i].merchant.logo);
     }
   } catch (error) {
     console.log(error);
-    request.log.error('Error enviar mail: ', error.message);
+    logger.error('Error enviar mail: ', error.message);
   }
 });
 
