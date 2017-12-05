@@ -253,7 +253,7 @@ function createSendGridRequest(pdf) {
 async function changeFacturaStatus(idFactura, status) {
   try {
     const requestUpdateFactura = new UpdateFacturaRequest();
-    requestUpdateFactura.idFactura = fidFactura;
+    requestUpdateFactura.idFactura = idFactura;
     requestUpdateFactura.status = status;
     await InvoiceService.updateInvoice(Parse, requestUpdateFactura);
   } catch (error) {
