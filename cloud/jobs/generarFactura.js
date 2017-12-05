@@ -255,7 +255,7 @@ async function changeFacturaStatus(idFactura, status) {
     const requestUpdateFactura = new UpdateFacturaRequest();
     requestUpdateFactura.idFactura = idFactura;
     requestUpdateFactura.status = status;
-    await InvoiceService.updateInvoice(Parse, requestUpdateFactura);
+    return await InvoiceService.updateInvoice(Parse, requestUpdateFactura);
   } catch (error) {
     logger.error(`Error on update factura status: ${error.message}`);
   }
@@ -280,6 +280,10 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
         result[i].tickets,
         result[i].mesFacturacion,
         numeroFactura
+      );
+      const res = await changeFacturaStatus(
+        facturaResponse.factura.id,
+        FACTURA_STATUS.error
       );
 
       if (!facturaResponse.created || !facturaResponse.factura) {
@@ -353,7 +357,7 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
             FACTURA_EVENT_TYPE.info,
             facturaResponse.factura,
             `Se ha enviado un email a ${
-              sendGridRequest.model.body.personalizations.to.email
+              sendGridRequest.body.personalizations[0].to[0].email
             }`
           );
           changeFacturaStatus(

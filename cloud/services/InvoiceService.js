@@ -106,7 +106,8 @@ async function updateInvoice(parse, request) {
       if (request.status) {
         result.set('status', request.status);
       }
-      await result.save();
+      const res = await result.save(null, { useMasterKey: true });
+      return res;
     }
   } catch (error) {
     logger.error(`Error on InvoiceService.updateInvoice: ${error.message}`);
