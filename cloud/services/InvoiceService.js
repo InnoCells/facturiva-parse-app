@@ -198,10 +198,28 @@ async function insertInvoiceEvent(parse, request) {
   }
 }
 
+async function deleteDraftInvoice(parse, id) {
+  const result = { deleted: false, error: null };
+  try {
+    const draft = new parse.Object('AutonomoTicketMerchant');
+    draft.id = id;
+    const draftResult = draft.fetch({ useMasterKey: true });
+    if (draftResult) {
+      await draftResult.destroy({ useMasterKey: true });
+      result.deleted = true;
+    }
+  } catch (error) {
+    logger.error(`Error on deleteDraftInvoice: ${error.message}`);
+    result.deleted = false;
+    result.error = error.message;
+  }
+  return result;
+}
 module.exports = {
   getPending,
   insertInvoice,
   getNextInvoiceIdByMerchantId,
   insertInvoiceEvent,
-  updateInvoice
+  updateInvoice,
+  deleteDraftInvoice
 };

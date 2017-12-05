@@ -231,7 +231,7 @@ function createSendGridRequest(pdf) {
         {
           to: [
             {
-              email: 'ernest@partners.innocells.io',
+              email: 'ernest14@partners.innocells.io',
               name: 'User'
             }
           ],
@@ -281,14 +281,15 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
         result[i].mesFacturacion,
         numeroFactura
       );
-      const res = await changeFacturaStatus(
-        facturaResponse.factura.id,
-        FACTURA_STATUS.error
-      );
 
       if (!facturaResponse.created || !facturaResponse.factura) {
         logger.error(`Error al crear factura: ${facturaResponse.error}`);
         continue;
+      } else {
+        const result = await InvoiceService.deleteDraftInvoice(result[i].id);
+        if (!result.deleted) {
+          continue;
+        }
       }
 
       const docxModelResponse = await generateModelForDocxInvoice(
