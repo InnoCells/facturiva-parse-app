@@ -1,4 +1,4 @@
-class InsertDraftInvoiceRequest {
+class InsertFacturaRequest {
   constructor() {
     this.tipo = null;
     this.file = null;
@@ -10,4 +10,4 @@ class InsertDraftInvoiceRequest {
   }
 }
 
-module.exports = InsertDraftInvoiceRequest;
+module.exports = InsertFacturaRequest;

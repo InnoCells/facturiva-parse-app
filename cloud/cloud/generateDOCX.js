@@ -5,6 +5,7 @@ const path = require('path');
 
 module.exports = {
   createDocx(templateName, jsonData) {
+    const response = { buffer: null, error: null };
     try {
       const content = fs.readFileSync(
         path.resolve(__dirname, templateName),
@@ -20,10 +21,11 @@ module.exports = {
       } catch (error) {
         return null;
       }
-      const buf = doc.getZip().generate({ type: 'nodebuffer' });
-      return buf;
+      response.buffer = doc.getZip().generate({ type: 'nodebuffer' });
+      return response;
     } catch (error) {
-      return null;
+      response.error = error.message;
     }
+    return response;
   }
 };
