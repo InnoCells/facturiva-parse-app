@@ -13,7 +13,7 @@ function getDataFacturacion(ticketDate) {
 async function getAutonomoMerchantTicket(autonomo, merchant, mesFacturacion) {
   try {
     const query = new Parse.Query('AutonomoTicketMerchant');
-    query.include('tickets');
+    // query.include('tickets');
     query.equalTo('autonomo', autonomo);
     query.equalTo('merchant', merchant);
     query.equalTo('mesFacturacion', mesFacturacion);

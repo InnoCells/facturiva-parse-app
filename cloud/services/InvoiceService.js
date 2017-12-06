@@ -203,9 +203,9 @@ async function deleteDraftInvoice(parse, id) {
   try {
     const draft = new parse.Object('AutonomoTicketMerchant');
     draft.id = id;
-    const draftResult = draft.fetch({ useMasterKey: true });
+    const draftResult = await draft.fetch({ useMasterKey: true });
     if (draftResult) {
-      await draftResult.destroy({ useMasterKey: true });
+      await draftResult.destroy();
       result.deleted = true;
     }
   } catch (error) {

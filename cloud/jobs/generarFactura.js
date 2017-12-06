@@ -286,8 +286,11 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
         logger.error(`Error al crear factura: ${facturaResponse.error}`);
         continue;
       } else {
-        const result = await InvoiceService.deleteDraftInvoice(result[i].id);
-        if (!result.deleted) {
+        const deleteDraftInvoiceResult = await InvoiceService.deleteDraftInvoice(
+          Parse,
+          result[i].id
+        );
+        if (!deleteDraftInvoiceResult.deleted) {
           continue;
         }
       }
