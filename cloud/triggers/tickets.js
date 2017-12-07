@@ -4,7 +4,19 @@ function getDataFacturacion(ticketDate) {
   if (ticketDate) {
     const month = ticketDate.getMonth();
     const year = ticketDate.getFullYear();
-    const date = new Date(Date.UTC(year, month + 1, 0, 0, 0, 0, 0));
+
+    const current = new Date();
+    const currentDay = current.getDate();
+    const currentMonth = current.getMonth();
+    const currentYear = current.getFullYear();
+
+    let date;
+    if (currentDay <= 2 && currentMonth !== month) {
+      date = new Date(Date.UTC(currentYear, currentMonth, 0, 0, 0, 0, 0));
+    } else {
+      date = new Date(Date.UTC(currentYear, currentMonth + 1, 0, 0, 0, 0, 0));
+    }
+
     return date;
   }
   return null;
@@ -13,12 +25,13 @@ function getDataFacturacion(ticketDate) {
 async function getAutonomoMerchantTicket(autonomo, merchant, mesFacturacion) {
   try {
     const query = new Parse.Query('AutonomoTicketMerchant');
-    // query.include('tickets');
     query.equalTo('autonomo', autonomo);
     query.equalTo('merchant', merchant);
-    query.equalTo('mesFacturacion', mesFacturacion);
+    if (mesFacturacion) {
+      query.equalTo('mesFacturacion', mesFacturacion);
+    }
 
-    const result = await query.first();
+    const result = await query.find();
     return result;
   } catch (error) {
     throw new Error(error.message);
@@ -54,11 +67,14 @@ async function insertAutonomoMerchantTicket(
       mesFacturacion
     );
 
-    if (result) {
-      const exsistTicket = exsistTicketInArray(result.get('tickets'), ticket);
+    if (result.length === 1) {
+      const exsistTicket = exsistTicketInArray(
+        result[0].get('tickets'),
+        ticket
+      );
       if (!exsistTicket.exsist) {
-        result.get('tickets').push(ticket);
-        result.save();
+        result[0].get('tickets').push(ticket);
+        result[0].save();
       }
     } else {
       const autnonomoMerchantTicket = new Parse.Object(
@@ -85,22 +101,25 @@ async function removeTicketFromArray(autonomo, merchant, ticket, logger) {
   try {
     const autonomoMerchantTickets = await getAutonomoMerchantTicket(
       autonomo,
-      merchant,
-      getDataFacturacion(ticket.get('fecha'))
+      merchant
     );
 
     if (autonomoMerchantTickets) {
-      const exsistTicket = exsistTicketInArray(
-        autonomoMerchantTickets.get('tickets'),
-        ticket
-      );
-      if (exsistTicket.exsist) {
-        autonomoMerchantTickets.get('tickets').splice(exsistTicket.index, 1);
-        const res = autonomoMerchantTickets.get('tickets').length;
-        if (res === 0) {
-          await autonomoMerchantTickets.destroy();
-        } else {
-          await autonomoMerchantTickets.save();
+      for (let i = 0; i < autonomoMerchantTickets.length; i++) {
+        const exsistTicket = exsistTicketInArray(
+          autonomoMerchantTickets[i].get('tickets'),
+          ticket
+        );
+        if (exsistTicket.exsist) {
+          autonomoMerchantTickets[i]
+            .get('tickets')
+            .splice(exsistTicket.index, 1);
+          const res = autonomoMerchantTickets[i].get('tickets').length;
+          if (res === 0) {
+            await autonomoMerchantTickets[i].destroy();
+          } else {
+            await autonomoMerchantTickets[i].save();
+          }
         }
       }
     }
@@ -111,7 +130,11 @@ async function removeTicketFromArray(autonomo, merchant, ticket, logger) {
 
 Parse.Cloud.afterSave('Tickets', async function(request) {
   try {
-    if (request.object.isNew()) return;
+    if (
+      request.object.get('createdAt').toString() ===
+      request.object.get('updatedAt').toString()
+    )
+      return;
 
     const logger = request.log;
 
@@ -125,29 +148,6 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
 
     const newMerchant = request.object.get('merchant');
     const oldMerchant = request.original.get('merchant');
-
-    if (
-      newStatus !== oldStatus ||
-      (oldMerchant && newMerchant && oldMerchant.id !== newMerchant.id) ||
-      (newFecha && oldFecha && newFecha.getMonth() !== oldFecha.getMonth())
-    ) {
-      if (newStatus === 'AP') {
-        await insertAutonomoMerchantTicket(
-          autonomo,
-          newMerchant,
-          request.object,
-          logger
-        );
-      }
-      if (oldStatus === 'AP') {
-        await removeTicketFromArray(
-          autonomo,
-          oldMerchant,
-          request.original,
-          logger
-        );
-      }
-    }
 
     if (oldMerchant && newMerchant && oldMerchant.id !== newMerchant.id) {
       await removeTicketFromArray(
@@ -165,6 +165,30 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
         request.original,
         logger
       );
+    }
+
+    if (oldStatus === 'AP' && oldStatus !== newStatus) {
+      await removeTicketFromArray(
+        autonomo,
+        oldMerchant,
+        request.original,
+        logger
+      );
+    }
+
+    if (
+      newStatus !== oldStatus ||
+      (oldMerchant && newMerchant && oldMerchant.id !== newMerchant.id) ||
+      (newFecha && oldFecha && newFecha.getMonth() !== oldFecha.getMonth())
+    ) {
+      if (newStatus === 'AP') {
+        await insertAutonomoMerchantTicket(
+          autonomo,
+          newMerchant,
+          request.object,
+          logger
+        );
+      }
     }
   } catch (error) {
     request.log.error(
