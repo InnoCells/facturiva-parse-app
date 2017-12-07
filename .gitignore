@@ -1,3 +1,5 @@
+config.js
+
 # Logs
 logs
 *.log
@@ -22,7 +24,6 @@ coverage
 # Compiled binary addons (http://nodejs.org/api/addons.html)
 build/Release
 scripts/dump
-config.js
 
 # Dependency directory
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
@@ -30,6 +31,5 @@ node_modules
 
 # Emacs
 *~
-config.js
 .env
 local.jssendgrid.env
