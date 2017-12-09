@@ -193,7 +193,7 @@ Parse.Cloud.afterSave('Tickets', async function(request) {
   } catch (error) {
     request.log.error(
       `Error on afterSave Tickets: ticketId: ${request.object.id}, Error: ${
-        error
+        error.message
       }`
     );
   }

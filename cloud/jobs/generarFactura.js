@@ -214,6 +214,74 @@ async function crearFactura(
   return response;
 }
 
+async function getTicketsAttachments(factura) {
+  const result = { error: null, tickets: [] };
+  try {
+    for (var i = 0; i < factura.tickets.length; i++) {
+      if (factura.tickets[i].image) {
+        const imageResult = await ImageUtils.getImageFromUrl(
+          factura.tickets[i].image
+        );
+        result.tickets.push({
+          filename: `ticket${i + 1}.jpg`,
+          type: imageResult.imageType,
+          disposition: 'attachment',
+          content: imageResult.data
+        });
+      }
+    }
+  } catch (error) {
+    result.error = error.message;
+    logger.error(`Error al cargar el ticket: ${error.message}`);
+  }
+  return result;
+}
+
+async function createMailForMerchant(facturaBorrador, factura) {
+  try {
+    const request = sendGrid.emptyRequest();
+
+    request.body = {
+      attachments: [
+        {
+          filename: 'Factura.pdf',
+          type: 'application/pdf',
+          disposition: 'attachment',
+          content: facturaBorrador.toString('base64')
+        }
+      ],
+      from: { email: 'info@facturiva.com', name: 'FacturIVA' },
+      personalizations: [
+        {
+          to: [
+            {
+              email: 'ernest@partners.innocells.io',
+              name: 'User'
+            }
+          ],
+          substitutions: {
+            '<%name%>': 'Ernest'
+          }
+        }
+      ],
+      subject: 'This is the subject',
+      template_id: '4f3febe7-7f55-4abd-acca-3f828172349a'
+    };
+
+    const ticketsResponse = await getTicketsAttachments(factura);
+
+    for (var i = 0; i < ticketsResponse.tickets.length; i++) {
+      request.body.attachments.push(ticketsResponse.tickets[i]);
+    }
+
+    request.method = 'POST';
+    request.path = '/v3/mail/send';
+    return request;
+  } catch (error) {
+    logger.error('Error al generar mail: ', error.message);
+  }
+}
+
 function createSendGridRequest(pdf) {
   try {
     const request = sendGrid.emptyRequest();
@@ -261,6 +329,60 @@ async function changeFacturaStatus(idFactura, status) {
   }
 }
 
+async function generarFacturaPDF(factura, esBorrador, numeroFactura) {
+  const result = { error: null, file: null };
+  try {
+    const docxModelResponse = await generateModelForDocxInvoice(
+      factura,
+      numeroFactura
+    );
+    if (docxModelResponse.errors) {
+      await createFacturaEvent(
+        FACTURA_EVENT_TYPE.error,
+        facturaResponse.factura,
+        docxModelResponse.errors
+      );
+      changeFacturaStatus(facturaResponse.factura.id, FACTURA_STATUS.error);
+      result.error = docxModelResponse.errors;
+      return result;
+    }
+
+    const docResponse = generateDOCX.createDocx(
+      esBorrador ? 'factura-borrador-template.docx' : 'factura-template.docx',
+      docxModelResponse.model
+    );
+
+    if (docResponse.error) {
+      await createFacturaEvent(
+        FACTURA_EVENT_TYPE.error,
+        facturaResponse.factura,
+        docResponse.error
+      );
+      changeFacturaStatus(facturaResponse.factura.id, FACTURA_STATUS.error);
+      result.error = docxModelResponse.errors;
+      return result;
+    }
+
+    const pdfResponse = await generatePDF.getPDF(docResponse.buffer);
+    if (pdfResponse.error) {
+      await createFacturaEvent(
+        FACTURA_EVENT_TYPE.error,
+        facturaResponse.factura,
+        pdfResponse.error
+      );
+      changeFacturaStatus(facturaResponse.factura.id, FACTURA_STATUS.error);
+      result.error = pdfResponse.error;
+    } else {
+      result.file = pdfResponse.file;
+    }
+    return result;
+  } catch (error) {
+    logger.error(`Error al crear factura borrador: ${error.message}`);
+    result.error = error.message;
+  }
+  return result;
+}
+
 Parse.Cloud.job('generarFacturas', async (request, status) => {
   try {
     const result = await InvoiceService.getPending(Parse);
@@ -291,64 +413,41 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
           result[i].id
         );
         if (!deleteDraftInvoiceResult.deleted) {
+          logger.error(
+            `No se ha podido eliminar el registro en DraftInvoice: ${
+              deleteDraftInvoiceResult.error
+            }`
+          );
           continue;
         }
       }
 
-      const docxModelResponse = await generateModelForDocxInvoice(
-        result[i],
-        numeroFactura
-      );
-
-      if (docxModelResponse.errors) {
-        await createFacturaEvent(
-          FACTURA_EVENT_TYPE.error,
-          facturaResponse.factura,
-          docxModelResponse.errors
-        );
-        changeFacturaStatus(facturaResponse.factura.id, FACTURA_STATUS.error);
-        continue;
-      }
-
-      const docResponse = generateDOCX.createDocx(
-        'factura-borrador-template.docx',
-        docxModelResponse.model
-      );
-
-      if (docResponse.error) {
-        await createFacturaEvent(
-          FACTURA_EVENT_TYPE.error,
-          facturaResponse.factura,
-          docResponse.error
-        );
-        changeFacturaStatus(facturaResponse.factura.id, FACTURA_STATUS.error);
-        continue;
-      }
-
-      const pdfResponse = await generatePDF.getPDF(docResponse.buffer);
-
-      if (pdfResponse.error) {
-        await createFacturaEvent(
-          FACTURA_EVENT_TYPE.error,
-          facturaResponse.factura,
-          pdfResponse.error
-        );
-        changeFacturaStatus(facturaResponse.factura.id, FACTURA_STATUS.error);
-        continue;
+      let factura, mail;
+      if (result[i].merchant.efc3 === true) {
+        factura = await generarFacturaPDF(result[i], false, numeroFactura);
+      } else if (result[i].merchant.efc3 === false) {
+      } else {
+        factura = await generarFacturaPDF(result[i], true, numeroFactura);
+        if (factura.error) {
+          continue;
+        }
+        mail = await createMailForMerchant(factura.file, result[i]);
       }
 
       try {
         const requestUpdateFactura = new UpdateFacturaRequest();
         requestUpdateFactura.idFactura = facturaResponse.factura.id;
-        requestUpdateFactura.file = pdfResponse.file;
+        if (factura && factura.file) {
+          requestUpdateFactura.file = factura.file;
+        }
         await InvoiceService.updateInvoice(Parse, requestUpdateFactura);
       } catch (error) {
         logger.error(`Error while update invoice: ${error.message}`);
         continue;
       }
 
-      const sendGridRequest = createSendGridRequest(pdfResponse.file);
-      sendGrid.API(sendGridRequest, function(error, response) {
+      // const sendGridRequest = createSendGridRequest(pdfResponse.file);
+      sendGrid.API(mail, function(error, response) {
         if (error) {
           createFacturaEvent(
             FACTURA_EVENT_TYPE.error,
@@ -361,7 +460,7 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
             FACTURA_EVENT_TYPE.info,
             facturaResponse.factura,
             `Se ha enviado un email a ${
-              sendGridRequest.body.personalizations[0].to[0].email
+              mail.body.personalizations[0].to[0].email
             }`
           );
           changeFacturaStatus(

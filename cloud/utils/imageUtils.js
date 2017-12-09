@@ -15,12 +15,12 @@ module.exports = {
           }
 
           console.log(response);
-          const data =
-            'data:' +
-            imageType +
-            ';base64,' +
-            new Buffer(body).toString('base64');
-          resolve(data);
+          // 'data:' +
+          // imageType +
+          // ';base64,' +
+
+          const data = new Buffer(body).toString('base64');
+          resolve({ data: data, imageType: imageType });
         } else {
           resolve(null);
         }
