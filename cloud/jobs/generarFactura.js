@@ -237,7 +237,7 @@ async function getTicketsAttachments(factura) {
   return result;
 }
 
-async function createMailForMerchant(facturaBorrador, factura) {
+async function createMailForAutonomo(factura, factura) {
   try {
     const request = sendGrid.emptyRequest();
 
@@ -245,6 +245,45 @@ async function createMailForMerchant(facturaBorrador, factura) {
       attachments: [
         {
           filename: 'Factura.pdf',
+          type: 'application/pdf',
+          disposition: 'attachment',
+          content: factura.toString('base64')
+        }
+      ],
+      from: { email: 'info@facturiva.com', name: 'FacturIVA' },
+      personalizations: [
+        {
+          to: [
+            {
+              email: 'ernest@partners.innocells.io',
+              name: 'User'
+            }
+          ],
+          substitutions: {
+            '<%name%>': 'Ernest'
+          }
+        }
+      ],
+      subject: 'This is the subject',
+      template_id: '4f3febe7-7f55-4abd-acca-3f828172349a'
+    };
+
+    request.method = 'POST';
+    request.path = '/v3/mail/send';
+    return request;
+  } catch (error) {
+    logger.error('Error al generar mail: ', error.message);
+  }
+}
+
+async function createMailForMerchant(facturaBorrador, factura) {
+  try {
+    const request = sendGrid.emptyRequest();
+
+    request.body = {
+      attachments: [
+        {
+          filename: 'FacturaBorrador.pdf',
           type: 'application/pdf',
           disposition: 'attachment',
           content: facturaBorrador.toString('base64')
@@ -425,13 +464,20 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
       let factura, mail;
       if (result[i].merchant.efc3 === true) {
         factura = await generarFacturaPDF(result[i], false, numeroFactura);
+        mail = await createMailForAutonomo(factura.file, result[i]);
       } else if (result[i].merchant.efc3 === false) {
       } else {
         factura = await generarFacturaPDF(result[i], true, numeroFactura);
-        if (factura.error) {
-          continue;
-        }
         mail = await createMailForMerchant(factura.file, result[i]);
+      }
+
+      if (factura.error) {
+        logger.error(
+          `Error al generar la factura en PDF: ${factura.error}, idFactura: ${
+            facturaResponse.factura.id
+          }`
+        );
+        continue;
       }
 
       try {
@@ -446,7 +492,6 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
         continue;
       }
 
-      // const sendGridRequest = createSendGridRequest(pdfResponse.file);
       sendGrid.API(mail, function(error, response) {
         if (error) {
           createFacturaEvent(
@@ -476,32 +521,3 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
     status.error(`Error: ${error.message}`);
   }
 });
-
-// const request = sendGrid.emptyRequest();
-// request.body = {
-//   from: { email: 'info@facturiva.com', name: 'FacturIVA' },
-//   personalizations: [
-//     {
-//       to: [
-//         {
-//           email: 'ernest@partners.innocells.io',
-//           name: 'User'
-//         }
-//       ],
-//       substitutions: {
-//         '<%name%>': 'Ernest'
-//       }
-//     }
-//   ],
-//   subject: 'This is the subject',
-//   template_id: '4f3febe7-7f55-4abd-acca-3f828172349a'
-// };
-
-// request.method = 'POST';
-// request.path = '/v3/mail/send';
-
-// sendGrid.API(request, function(error, response) {
-//   console.log(response.statusCode);
-//   console.log(response.body);
-//   console.log(response.headers);
-// });
