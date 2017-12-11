@@ -238,7 +238,7 @@ async function getTicketsAttachments(factura) {
       }
     }
   } catch (error) {
-    throw new Error(`Error al obtener tickets: ${error.message}`);
+    throw new Error(`Error en 'getTicketsAttachments': ${error.message}`);
   }
   return result;
 }
@@ -276,7 +276,7 @@ async function getAttachments(factura) {
     }
     return attachments;
   } catch (error) {
-    throw new Error(`Error al generar adjuntos: ${error.message}`);
+    throw new Error(`Error en 'getAttachments': ${error.message}`);
   }
 }
 
@@ -297,7 +297,7 @@ async function appendFileInInvoice(draftInvoice, invoiceId, file) {
       const res = await TicketService.updateTickets(requestUpdateTickets);
     }
   } catch (error) {
-    throw new Error(`Error al asociar el pdf a la factura: ${error.message}`);
+    throw new Error(`Error en 'appendFileInInvoice': ${error.message}`);
   }
 }
 
@@ -355,7 +355,7 @@ function getDestinatarios(factura) {
     response.email = 'ernest@innocells.io';
     response.nombre = 'Ernest Roca';
   } catch (error) {
-    throw new Error(`Error al obtener destinatarios: ${error.message}`);
+    throw new Error(`Error en 'getDestinatarios': ${error.message}`);
   }
   return response;
 }
@@ -371,7 +371,7 @@ function getMailSubject(factura) {
       subject = 'Factura borrador';
     }
   } catch (error) {
-    throw new Error(`Error al generar Subject para el email: ${error.message}`);
+    throw new Error(`Error en 'getMailSubject': ${error.message}`);
   }
   return subject;
 }
