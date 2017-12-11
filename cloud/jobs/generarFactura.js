@@ -321,7 +321,7 @@ async function getFactura(draftInvoice, numeroFactura, invoiceId) {
       // TODO
     } else {
       const file = await generarFacturaPDF(pdfModel.model, true);
-      await appendFileInInvoice(invoiceId, file);
+      await appendFileInInvoice(draftInvoice, invoiceId, file);
       response = {
         filename: 'FacturaBorrador.pdf',
         type: 'application/pdf',
@@ -338,22 +338,25 @@ async function getFactura(draftInvoice, numeroFactura, invoiceId) {
 function getDestinatarios(factura) {
   const response = { email: null, nombre: null };
   try {
-    // if (factura.merchant.efc3 === true) {
-    //   response.email = factura.autonomo.email;
-    //   response.nombre = `${factura.autonomo.nombre} ${
-    //     factura.autonomo.apellidos
-    //   }`;
-    // } else {
-    //   if (factura.merchant.invoiceMakers.length() === 0) {
-    //     throw new Error(
-    //       `El merchant ${factura.merchant.name} no tiene invoice Makers`
-    //     );
-    //   }
-    //   response.email = factura.merchant.invoiceMakers[0].email;
-    //   response.nombre = factura.merchant.invoiceMakers[0].nombre;
-    // }
-    response.email = 'ernest@innocells.io';
-    response.nombre = 'Ernest Roca';
+    if (factura.merchant.efc3 === true) {
+      response.email = factura.autonomo.email;
+      response.nombre = `${factura.autonomo.nombre} ${
+        factura.autonomo.apellidos
+      }`;
+    } else {
+      if (factura.merchant.invoiceMakers.length === 0) {
+        throw new Error(
+          `El merchant ${factura.merchant.nombre} no tiene invoice Makers`
+        );
+      }
+      response.email = factura.merchant.invoiceMakers[0].email;
+      response.nombre = factura.merchant.invoiceMakers[0].nombre;
+    }
+
+    if (process.env.ENVIRONMENT === 'Development') {
+      response.email = 'ernest@innocells.io';
+      response.nombre = 'Ernest Roca';
+    }
   } catch (error) {
     throw new Error(`Error en 'getDestinatarios': ${error.message}`);
   }
@@ -376,10 +379,25 @@ function getMailSubject(factura) {
   return subject;
 }
 
+function getSendgridTemplate(draftInvoice) {
+  try {
+    if (draftInvoice.merchant.efc3 === true) {
+      return process.env.FACTURA_TEMPLATEID;
+    } else if (draftInvoice.merchant.efc3 === false) {
+      return process.env.FACTURA_RECLAMACION_TEMPLATEID;
+    } else {
+      return process.env.FACTURA_BORRADOR_TEMPLATEID;
+    }
+  } catch (error) {
+    throw new Error(`Error en 'getSendgridTemplate': ${error.message}`);
+  }
+}
+
 async function getMail(draftInvoice, numeroFactura, invoiceId) {
   try {
     const request = sendGrid.emptyRequest();
     request.body = {
+      data: { idFactura: invoiceId, efc3: draftInvoice.merchant.efc3 },
       from: { email: 'info@facturiva.com', name: 'FacturIVA' }
     };
     request.method = 'POST';
@@ -410,10 +428,31 @@ async function getMail(draftInvoice, numeroFactura, invoiceId) {
     }
 
     request.body.subject = getMailSubject(draftInvoice);
-    request.body.template_id = '4f3febe7-7f55-4abd-acca-3f828172349a';
+    request.body.template_id = getSendgridTemplate(draftInvoice);
     return request;
   } catch (error) {
     throw new Error(`Error en 'getMail': ${error.message}`);
+  }
+}
+
+function sendgridResponse(error, response, factura, efc3, mail) {
+  if (error) {
+    createFacturaEvent(
+      FACTURA_EVENT_TYPE.error,
+      factura,
+      `Error al enviar email: ${JSON.stringify(error)}`
+    );
+    changeFacturaStatus(factura.id, FACTURA_STATUS.error);
+  } else {
+    createFacturaEvent(
+      FACTURA_EVENT_TYPE.info,
+      factura,
+      `Se ha enviado un email a ${mail.body.personalizations[0].to[0].email}`
+    );
+    changeFacturaStatus(
+      factura.id,
+      efc3 === true ? FACTURA_STATUS.confirmada : FACTURA_STATUS.pendiente
+    );
   }
 }
 
@@ -478,29 +517,11 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
 
       if (!mail) continue;
 
-      sendGrid.API(mail, function(error, response) {
-        if (error) {
-          createFacturaEvent(
-            FACTURA_EVENT_TYPE.error,
-            facturaResponse.factura,
-            `Error al enviar email: ${error.message}`
-          );
-          changeFacturaStatus(facturaResponse.factura.id, FACTURA_STATUS.error);
-        } else {
-          createFacturaEvent(
-            FACTURA_EVENT_TYPE.info,
-            facturaResponse.factura,
-            `Se ha enviado un email a ${
-              mail.body.personalizations[0].to[0].email
-            }`
-          );
-          changeFacturaStatus(
-            facturaResponse.factura.id,
-            result[i].merchant.efc3 === true
-              ? FACTURA_STATUS.confirmada
-              : FACTURA_STATUS.pendiente
-          );
-        }
+      const invoiceId = facturaResponse.factura.id;
+      const efc3 = result[i].merchant.efc3;
+
+      sendGrid.API(mail, (error, response) => {
+        sendgridResponse(error, response, facturaResponse.factura, efc3, mail);
       });
     }
     status.success('Success');
