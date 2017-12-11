@@ -13,7 +13,6 @@ async function getPending(parse) {
     query.include('autonomo');
     query.include('autonomo.userProfile');
     query.include('tickets');
-    query.equalTo('status', 'N');
 
     const queryResult = await query.find({ useMasterKey: true });
     _.each(queryResult, dbFactura => {

@@ -27,6 +27,9 @@ const {
   FACTURA_STATUS
 } = require('../services/DTO/UpdateFacturaRequest');
 
+const { UpdateTicketRequest } = require('../services/DTO/UpdateTicketRequest');
+const TicketService = require('../services/ticketService');
+
 async function generateModelForDocxInvoice(factura, facturaId) {
   const response = { model: null, errors: null };
   try {
@@ -132,7 +135,11 @@ async function getNextInvoiceId(merchantId, fechaFacturacion) {
     );
     return numeroFactura;
   } catch (error) {
-    logger.error('Error on getNextInvoiceId: ', error.message);
+    logger.error(
+      `Error on getNextInvoiceId: ${error.message} para el merchant: ${
+        merchantId
+      }`
+    );
   }
   return null;
 }
@@ -444,7 +451,11 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
       );
 
       if (!facturaResponse.created || !facturaResponse.factura) {
-        logger.error(`Error al crear factura: ${facturaResponse.error}`);
+        logger.error(
+          `Error al crear factura: ${facturaResponse.error} DRAFT INVOICE: ${
+            result[i].id
+          }`
+        );
         continue;
       } else {
         const deleteDraftInvoiceResult = await InvoiceService.deleteDraftInvoice(
@@ -466,6 +477,7 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
         factura = await generarFacturaPDF(result[i], false, numeroFactura);
         mail = await createMailForAutonomo(factura.file, result[i]);
       } else if (result[i].merchant.efc3 === false) {
+        // TODO Reclamar factura para tickets
       } else {
         factura = await generarFacturaPDF(result[i], true, numeroFactura);
         mail = await createMailForMerchant(factura.file, result[i]);
@@ -486,7 +498,16 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
         if (factura && factura.file) {
           requestUpdateFactura.file = factura.file;
         }
-        await InvoiceService.updateInvoice(Parse, requestUpdateFactura);
+        const resultUpdateInvoice = await InvoiceService.updateInvoice(
+          Parse,
+          requestUpdateFactura
+        );
+        if (resultUpdateInvoice) {
+          const requestUpdateTickets = new UpdateTicketRequest();
+          requestUpdateTickets.facturaId = facturaResponse.factura.id;
+          requestUpdateTickets.ticketIds = _.map(result[i].tickets, 'id');
+          const res = await TicketService.updateTickets(requestUpdateTickets);
+        }
       } catch (error) {
         logger.error(`Error while update invoice: ${error.message}`);
         continue;
