@@ -393,11 +393,182 @@ function getSendgridTemplate(draftInvoice) {
   }
 }
 
+function getTableDetail(draftInvoice) {
+  let table = `<table border="1" cellpadding="0" cellspacing="0" width="502">
+  <tbody>
+    <tr>
+      <td style="width: 134px; height: 1px; text-align: center;">
+        <strong>Tipo Servicio</strong>
+      </td>
+      <td style="width: 134px; height: 1px; text-align: center;">
+        <strong>Base Imponible</strong>
+      </td>
+      <td style="width: 134px; height: 1px; text-align: center;">
+        <strong>Tipo Impositivo</strong>
+      </td>
+      <td style="width: 134px; height: 1px; text-align: center;">
+        <strong>IVA</strong>
+      </td>
+      <td style="width: 134px; height: 1px; text-align: center;">
+        <strong>Total IVA incluído</strong>
+      </td>
+    </tr>`;
+  try {
+    let totalBaseImponible = 0,
+      totalTipoImpositivo = 0,
+      totalIvaIncluido = 0;
+
+    const merchantType = merchantUtils.getMerchantType(
+      draftInvoice.merchant.tipoMerchant
+    );
+    _.each(draftInvoice.tickets, ticket => {
+      const total = ticket.importe;
+      const ivaPercent = ticket.porcentajeIVA;
+      const tipoImpositivo = ivaPercent / 100 * total;
+      const baseImponible = total - tipoImpositivo;
+      totalBaseImponible += baseImponible;
+      totalTipoImpositivo += tipoImpositivo;
+      totalIvaIncluido += total;
+      const ticketModel = {
+        total: (Math.round(total * 1000) / 1000)
+          .toFixed(2)
+          .toLocaleString('es-ES'),
+        ivaPercent: (Math.round(ivaPercent * 1000) / 1000)
+          .toFixed(2)
+          .toLocaleString('es-ES'),
+        tipoImpositivo: (Math.round(tipoImpositivo * 1000) / 1000)
+          .toFixed(2)
+          .toLocaleString('es-ES'),
+        baseImponible: (Math.round(baseImponible * 1000) / 1000)
+          .toFixed(2)
+          .toLocaleString('es-ES')
+      };
+      table += ` 
+       <tr>
+        <td style="width:134px;height:14px; text-align: center;">
+          <span style="font-size:14px">${merchantType}</span>
+        </td>
+        <td style="width: 134px; height: 14px; text-align: center;">
+          <span style="font-size:14px">${ticketModel.baseImponible}</span>
+        </td>
+        <td style="width: 134px; height: 14px; text-align: center;">
+          <span style="font-size:14px">${ticketModel.ivaPercent}%</span>
+        </td>
+        <td style="width: 134px; height: 14px; text-align: center;">
+          <span style="font-size:14px">${ticketModel.tipoImpositivo}</span>
+        </td>
+        <td style="width: 134px; height: 14px; text-align: center;">
+          <span style="font-size:14px">${ticketModel.total}</span>
+        </td>
+      </tr>`;
+    });
+
+    table += `<tr>
+      <td style="width: 134px; height: 13px; text-align: right;">
+        <span style="font-size:14px">
+          <strong>Totales</strong>
+        </span>
+      </td>
+      <td style="width: 134px; height: 13px; text-align: center;">
+        <span style="font-size:14px">${(
+          Math.round(totalBaseImponible * 1000) / 1000
+        )
+          .toFixed(2)
+          .toLocaleString('es-ES')}</span>
+      </td>
+      <td style="width: 134px; height: 13px; text-align: center;">
+        <span style="font-size:14px">&nbsp;</span>
+      </td>
+      <td style="width: 134px; height: 13px; text-align: center;">
+        <span style="font-size:14px">${(
+          Math.round(totalTipoImpositivo * 1000) / 1000
+        )
+          .toFixed(2)
+          .toLocaleString('es-ES')}</span>
+      </td>
+      <td style="width: 134px; height: 13px; text-align: center;">
+        <strong>
+          <span style="font-size:14px">${(
+            Math.round(totalIvaIncluido * 1000) / 1000
+          )
+            .toFixed(2)
+            .toLocaleString('es-ES')}</span>
+        </strong>
+      </td>
+    </tr>`;
+
+    table += `</tbody></table>`;
+    return table;
+  } catch (error) {
+    throw new Error(`Error en 'getTableDetail': ${error.message}`);
+  }
+}
+
+function getSubstitutions(draftInvoice, numeroFactura) {
+  try {
+    const substitutions = {
+      '*|MC_PREVIEW_TEXT|*': 'Este es el preview',
+      '%MERCHANT_FULL_NAME%': draftInvoice.merchant.nombre,
+      '%AUTONOMO_FULL_NAME%': `${draftInvoice.autonomo.nombre} ${
+        draftInvoice.autonomo.apellidos
+      }`,
+      '%NUM_FACTURA%': numeroFactura,
+      '%FECHA_ACTUAL%': dateUtils.getStringFromDate(new Date()),
+      '%MERCHANT_NAME%': draftInvoice.merchant.nombre,
+      '%MERCHANT_NIF%': draftInvoice.merchant.nifCif,
+      '%MERCHANT_CALLE%': draftInvoice.merchant.direccion,
+      '%MERCHANT_DIRECCION_COMPLETA%': `${
+        draftInvoice.merchant.codigoPostal
+      }, ${draftInvoice.merchant.localidad}, ${
+        draftInvoice.merchant.provincia
+      }`,
+      '%MERCHANT_TELEFONO%': draftInvoice.merchant.telefono,
+      '%AUTONOMO_NAME%': `${draftInvoice.autonomo.nombre} ${
+        draftInvoice.autonomo.apellidos
+      }`,
+      '%AUTONOMO_NIF%': draftInvoice.autonomo.userProfile.nifNie,
+      '%AUTONOMO_CALLE%': draftInvoice.autonomo.userProfile.domicilioSocial,
+      '%AUTONOMO_DIRECCION_COMPLETA%': `${
+        draftInvoice.autonomo.userProfile.codigoPostal
+      }, ${draftInvoice.autonomo.userProfile.poblacion}, ${
+        draftInvoice.autonomo.userProfile.provincia
+      }`,
+      '%AUTONOMO_TELEFONO%': draftInvoice.autonomo.userProfile.telefono,
+      '%PERIODO_FACTURACION%': dateUtils.getMonthYearString(
+        draftInvoice.mesFacturacion
+      ),
+      '%TABLE_DETAIL%': getTableDetail(draftInvoice)
+    };
+
+    //   <!-- <tr>
+    //   <td style="width:134px;height:14px;">&nbsp;[
+    //     <span style="font-size:14px">TIPO_DE_MERCHANT]</span>
+    //   </td>
+    //   <td style="width: 134px; height: 14px; text-align: center;">
+    //     <span style="font-size:14px">[AMOUNT]</span>
+    //   </td>
+    //   <td style="width: 134px; height: 14px; text-align: center;">
+    //     <span style="font-size:14px">[TAX]</span>
+    //   </td>
+    //   <td style="width: 134px; height: 14px; text-align: center;">
+    //     <span style="font-size:14px">[AMOUNT_TAX]</span>
+    //   </td>
+    //   <td style="width: 134px; height: 14px; text-align: center;">
+    //     <span style="font-size:14px">[TOTAL_AMOUNT]</span>
+    //   </td>
+    // </tr>
+    // <tr> -->
+    // %TABLE_DETAIL%
+    return substitutions;
+  } catch (error) {
+    throw new Error(`Error en 'getSubstitutions': ${error.message}`);
+  }
+}
+
 async function getMail(draftInvoice, numeroFactura, invoiceId) {
   try {
     const request = sendGrid.emptyRequest();
     request.body = {
-      data: { idFactura: invoiceId, efc3: draftInvoice.merchant.efc3 },
       from: { email: 'info@facturiva.com', name: 'FacturIVA' }
     };
     request.method = 'POST';
@@ -414,6 +585,8 @@ async function getMail(draftInvoice, numeroFactura, invoiceId) {
     }
 
     const destinatarios = await getDestinatarios(draftInvoice);
+    const substitutions = getSubstitutions(draftInvoice, numeroFactura);
+
     if (destinatarios) {
       request.body.personalizations = [
         {
@@ -422,7 +595,8 @@ async function getMail(draftInvoice, numeroFactura, invoiceId) {
               email: destinatarios.email,
               name: destinatarios.nombre
             }
-          ]
+          ],
+          substitutions: substitutions
         }
       ];
     }
