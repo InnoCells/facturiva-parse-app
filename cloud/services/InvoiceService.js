@@ -13,7 +13,6 @@ async function getPending(parse) {
     query.include('autonomo');
     query.include('autonomo.userProfile');
     query.include('tickets');
-    query.equalTo('status', 'N');
 
     const queryResult = await query.find({ useMasterKey: true });
     _.each(queryResult, dbFactura => {
@@ -191,7 +190,7 @@ async function insertInvoiceEvent(parse, request) {
     event.set('factura', request.factura);
     event.set('type', request.type);
     event.set('info', request.info);
-
+    event.set('xMessageId', request.xMessageId);
     const result = await event.save();
   } catch (error) {
     logger.error(`Error on insertInvoiceEvent ${error.message}`);

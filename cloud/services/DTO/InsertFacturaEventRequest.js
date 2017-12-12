@@ -5,6 +5,7 @@ class InsertFacturaEventRequest {
     this.factura = null;
     this.type = null;
     this.info = null;
+    this.xMessageId = null;
   }
 }
 
