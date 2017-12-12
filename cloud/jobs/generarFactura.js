@@ -465,7 +465,7 @@ function getTableDetail(draftInvoice) {
 
     table += `<tr>
       <td style="width: 134px; height: 13px; text-align: right;">
-        <span style="font-size:14px">
+        <span style="font-size:14px; text-align: center;">
           <strong>Totales</strong>
         </span>
       </td>
