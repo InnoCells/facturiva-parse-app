@@ -136,9 +136,9 @@ async function getNextInvoiceId(merchantId, fechaFacturacion) {
     return numeroFactura;
   } catch (error) {
     logger.error(
-      `Error on getNextInvoiceId: ${error.message} para el merchant: ${
-        merchantId
-      }`
+      `Error on getNextInvoiceId: ${
+        error.message
+      } para el merchant: ${merchantId}`
     );
   }
   return null;
@@ -172,12 +172,13 @@ function getTipoFactura(merchant) {
   return response;
 }
 
-async function createFacturaEvent(type, factura, info) {
+async function createFacturaEvent(type, factura, info, xMessageId) {
   try {
     const request = new InsertFacturaEventRequest();
     request.type = type;
     request.factura = factura;
     request.info = info;
+    request.xMessageId = xMessageId;
     await InvoiceService.insertInvoiceEvent(Parse, request);
   } catch (error) {
     logger.error(`Error al crear un evento: ${error.message}`);
@@ -394,25 +395,16 @@ function getSendgridTemplate(draftInvoice) {
 }
 
 function getTableDetail(draftInvoice) {
-  let table = `<table border="1" cellpadding="0" cellspacing="0" width="502">
+  let table = `<table class="tableContent detail">
+  <thead>
+    <th>Tipo Servicio</th>
+    <th>Base Imponible</th>
+    <th>Tipo Impositivo</th>
+    <th>IVA</th>
+    <th>Total IVA Incluído</th>
+  </thead>
   <tbody>
-    <tr>
-      <td style="width: 134px; height: 1px; text-align: center;">
-        <strong>Tipo Servicio</strong>
-      </td>
-      <td style="width: 134px; height: 1px; text-align: center;">
-        <strong>Base Imponible</strong>
-      </td>
-      <td style="width: 134px; height: 1px; text-align: center;">
-        <strong>Tipo Impositivo</strong>
-      </td>
-      <td style="width: 134px; height: 1px; text-align: center;">
-        <strong>IVA</strong>
-      </td>
-      <td style="width: 134px; height: 1px; text-align: center;">
-        <strong>Total IVA incluído</strong>
-      </td>
-    </tr>`;
+ `;
   try {
     let totalBaseImponible = 0,
       totalTipoImpositivo = 0,
@@ -445,59 +437,54 @@ function getTableDetail(draftInvoice) {
       };
       table += ` 
        <tr>
-        <td style="width:134px;height:14px; text-align: center;">
-          <span style="font-size:14px">${merchantType}</span>
+        <td>
+          <span>${merchantType}</span>
         </td>
-        <td style="width: 134px; height: 14px; text-align: center;">
-          <span style="font-size:14px">${ticketModel.baseImponible}</span>
+        <td>
+          <span>${ticketModel.baseImponible}</span>
         </td>
-        <td style="width: 134px; height: 14px; text-align: center;">
-          <span style="font-size:14px">${ticketModel.ivaPercent}%</span>
+        <td>
+          <span>${ticketModel.ivaPercent}%</span>
         </td>
-        <td style="width: 134px; height: 14px; text-align: center;">
-          <span style="font-size:14px">${ticketModel.tipoImpositivo}</span>
+        <td>
+          <span>${ticketModel.tipoImpositivo}</span>
         </td>
-        <td style="width: 134px; height: 14px; text-align: center;">
-          <span style="font-size:14px">${ticketModel.total}</span>
+        <td>
+          <span>${ticketModel.total}</span>
         </td>
       </tr>`;
     });
 
     table += `<tr>
-      <td style="width: 134px; height: 13px; text-align: right;">
-        <span style="font-size:14px; text-align: center;">
+      <td>
+        <span>
           <strong>Totales</strong>
         </span>
       </td>
-      <td style="width: 134px; height: 13px; text-align: center;">
-        <span style="font-size:14px">${(
-          Math.round(totalBaseImponible * 1000) / 1000
-        )
+      <td>
+        <span>${(Math.round(totalBaseImponible * 1000) / 1000)
           .toFixed(2)
           .toLocaleString('es-ES')}</span>
       </td>
-      <td style="width: 134px; height: 13px; text-align: center;">
-        <span style="font-size:14px">&nbsp;</span>
+      <td>
+        <span>&nbsp;</span>
       </td>
-      <td style="width: 134px; height: 13px; text-align: center;">
-        <span style="font-size:14px">${(
-          Math.round(totalTipoImpositivo * 1000) / 1000
-        )
+      <td>
+        <span>${(Math.round(totalTipoImpositivo * 1000) / 1000)
           .toFixed(2)
           .toLocaleString('es-ES')}</span>
       </td>
-      <td style="width: 134px; height: 13px; text-align: center;">
+      <td>
         <strong>
-          <span style="font-size:14px">${(
-            Math.round(totalIvaIncluido * 1000) / 1000
-          )
+          <span>${(Math.round(totalIvaIncluido * 1000) / 1000)
             .toFixed(2)
             .toLocaleString('es-ES')}</span>
         </strong>
       </td>
     </tr>`;
 
-    table += `</tbody></table>`;
+    table += `</tbody>
+    </table>`;
     return table;
   } catch (error) {
     throw new Error(`Error en 'getTableDetail': ${error.message}`);
@@ -621,7 +608,8 @@ function sendgridResponse(error, response, factura, efc3, mail) {
     createFacturaEvent(
       FACTURA_EVENT_TYPE.info,
       factura,
-      `Se ha enviado un email a ${mail.body.personalizations[0].to[0].email}`
+      `Se ha enviado un email a ${mail.body.personalizations[0].to[0].email}`,
+      response.headers['x-message-id']
     );
     changeFacturaStatus(
       factura.id,
