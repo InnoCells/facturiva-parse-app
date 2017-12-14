@@ -51,10 +51,7 @@ async function insertInvoice(parse, request) {
     newInvoice.set('merchant', merchant);
 
     const anyoFacturacion = parseFloat(
-      request.periodoFacturacion
-        .getFullYear()
-        .toString()
-        .substr(-2)
+      request.periodoFacturacion.getFullYear().toString()
     );
 
     newInvoice.set('numeroFactura', request.numeroFactura);
@@ -104,6 +101,9 @@ async function updateInvoice(parse, request) {
       }
       if (request.status) {
         result.set('status', request.status);
+      }
+      if (request.tipo) {
+        result.set('tipo', request.tipo);
       }
       const res = await result.save(null, { useMasterKey: true });
       return res;
@@ -162,13 +162,14 @@ async function getNextInvoiceIdByMerchantId(
     invoiceQuery.descending('createdAt');
 
     const result = await invoiceQuery.first({ useMasterKey: true });
+    const anyoFacturacionShort = anyoFacturacion.toString().substring(2);
     if (result) {
       const lastNum = result.get('numeroFactura');
       let num = parseFloat(lastNum.substring(7, lastNum.length));
       num += 1;
-      return `FI${anyoFacturacion}001${num.toString().padStart(5, '0')}`;
+      return `FI${anyoFacturacionShort}001${num.toString().padStart(5, '0')}`;
     } else {
-      return `FI${anyoFacturacion}00100001`;
+      return `FI${anyoFacturacionShort}00100001`;
     }
   } catch (error) {
     logger.error(

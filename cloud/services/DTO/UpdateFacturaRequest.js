@@ -3,6 +3,7 @@ class UpdateFacturaRequest {
     this.idFactura = null;
     this.file = null;
     this.status = null;
+    this.tipo = null;
   }
 }
 

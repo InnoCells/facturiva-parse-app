@@ -28,7 +28,12 @@ const {
 } = require('../services/DTO/UpdateFacturaRequest');
 
 const { UpdateTicketRequest } = require('../services/DTO/UpdateTicketRequest');
+const {
+  UpdateMerchantRequest
+} = require('../services/DTO/UpdateMerchantRequest');
 const TicketService = require('../services/ticketService');
+const FacturaService = require('../services/FacturaService');
+const MerchantService = require('../services/MerchantService');
 
 async function generateModelForDocxInvoice(factura, facturaId) {
   const response = { model: null, errors: null };
@@ -64,8 +69,6 @@ async function generateModelForDocxInvoice(factura, facturaId) {
       }, ${factura.autonomo.userProfile.provincia}`
     };
 
-    // const date = new Date();
-    // date.setMonth(date.getMonth() - 1);
     response.model.periodoFacturacion = dateUtils.getMonthYearString(
       factura.mesFacturacion
     );
@@ -123,10 +126,7 @@ async function generateModelForDocxInvoice(factura, facturaId) {
 async function getNextInvoiceId(merchantId, fechaFacturacion) {
   try {
     const anyoFacturacion = parseFloat(
-      fechaFacturacion
-        .getFullYear()
-        .toString()
-        .substr(-2)
+      fechaFacturacion.getFullYear().toString()
     );
     const numeroFactura = await InvoiceService.getNextInvoiceIdByMerchantId(
       Parse,
@@ -690,5 +690,58 @@ Parse.Cloud.job('generarFacturas', async (request, status) => {
   } catch (error) {
     logger.error(`Error: ${error.message}`);
     status.error(`Error: ${error.message}`);
+  }
+});
+
+Parse.Cloud.define('generaFacruraDefinitiva', async function(
+  request,
+  response
+) {
+  try {
+    const facturaResponse = await FacturaService.getById(
+      Parse,
+      request.params.facturaId
+    );
+
+    if (!facturaResponse.factura) {
+      response.error('No se ha encontrado la Factura');
+    } else {
+      if (facturaResponse.factura.tipo === 'B') {
+        const request = new UpdateMerchantRequest();
+        request.efc3 = true;
+        request.merchantId = facturaResponse.factura.merchant.id;
+
+        const merchant = await MerchantService.updateMerchant(request);
+        facturaResponse.factura.merchant.efc3 = true;
+        const facturacion = new Date(
+          facturaResponse.factura.anyoFacturacion,
+          facturaResponse.factura.mesFacturacion,
+          null,
+          null,
+          null,
+          null,
+          null
+        );
+        facturaResponse.factura.mesFacturacion = facturacion;
+
+        const facturaPDF = await getFactura(
+          facturaResponse.factura,
+          facturaResponse.factura.numeroFactura,
+          facturaResponse.factura.id
+        );
+
+        if (facturaPDF) {
+          const facturaRequest = new UpdateFacturaRequest();
+          facturaRequest.idFactura = facturaResponse.factura.id;
+          facturaRequest.tipo = 'F';
+          facturaRequest.status = FACTURA_STATUS.confirmada;
+          await InvoiceService.updateInvoice(Parse, facturaRequest);
+        }
+      }
+    }
+    response.success('Ok');
+  } catch (error) {
+    logger.error(`Error: ${error.message}`);
+    response.error('No se ha podido generar la factura');
   }
 });
