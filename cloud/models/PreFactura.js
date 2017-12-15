@@ -1,15 +1,27 @@
+const _ = require('lodash');
 const Autonomo = require('./Autonomo');
+const Merchant = require('./Merchant');
+const Ticket = require('./Ticket');
 
 class PreFactura extends Parse.Object {
-  constructor(attr, options) {
-    super('AutonomoTicketMerchant', attr, options);
-    if (!this.id) return;
-    this.id = this.id;
-    this.autonomo = this.get(Autonomo);
+  constructor() {
+    super('AutonomoTicketMerchant');
   }
   get getPlainObject() {
     return {
-      autonomo: this.get('autonomo').getPlainObject
+      id: this.id,
+      mesFacturacion: this.get('mesFacturacion'),
+      autonomo: this.get('autonomo')
+        ? this.get('autonomo').getPlainObject
+        : null,
+      merchant: this.get('merchant')
+        ? this.get('merchant').getPlainObject
+        : null,
+      tickets: this.get('tickets')
+        ? _.map(this.get('tickets'), ticket => {
+            return ticket.getPlainObject;
+          })
+        : null
     };
   }
 }

@@ -1,35 +1,34 @@
 const _ = require('lodash');
-const Ticket = require('./Ticket');
-const Autonomo = require('./Autonomo');
-const Merchant = require('./Merchant');
 
-class Factura {
+class Factura extends Parse.Object {
   constructor() {
-    this.id = null;
-    this.autonomo = null;
-    this.merchant = null;
-    this.tickets = [];
-    this.mesFacturacion = null;
-    this.status = null;
-    this.lastMailSended = null;
+    super('Facturas');
   }
 
-  loadFromParseObject(parseFactura) {
-    if (!parseFactura) return;
-    this.id = parseFactura.id;
-    this.mesFacturacion = parseFactura.get('mesFacturacion');
-    this.status = parseFactura.get('status');
-    this.lastMailSended = parseFactura.get('lastMailSended');
-    this.autonomo = new Autonomo();
-    this.autonomo.loadFromParseObject(parseFactura.get('autonomo'));
-    this.merchant = new Merchant();
-    this.merchant.loadFromParseObject(parseFactura.get('merchant'));
-    _.each(parseFactura.get('tickets'), dbTicket => {
-      const ticket = new Ticket();
-      ticket.loadFromParseObject(dbTicket);
-      this.tickets.push(ticket);
-    });
+  get getPlainObject() {
+    return {
+      id: this.id,
+      autonomo: this.get('autonomo')
+        ? this.get('autonomo').getPlainObject
+        : null,
+      merchant: this.get('merchant')
+        ? this.get('merchant').getPlainObject
+        : null,
+      status: this.get('status'),
+      tipo: this.get('tipo'),
+      anyoFacturacion: this.get('anyoFacturacion'),
+      mesFacturacion: this.get('mesFacturacion'),
+      numeroFactura: this.get('numeroFactura'),
+      factura: this.get('factura') ? this.get('factura').url() : null,
+      tickets: this.get('tickets')
+        ? _.map(this.get('tickets'), ticket => {
+            return ticket.getPlainObject;
+          })
+        : null
+    };
   }
 }
+
+Parse.Object.registerSubclass('Factura', Factura);
 
 module.exports = Factura;

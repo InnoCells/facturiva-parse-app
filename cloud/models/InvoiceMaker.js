@@ -1,18 +1,17 @@
-class InvoiceMaker {
+class InvoiceMaker extends Parse.Object {
   constructor() {
-    this.id = null;
-    this.nombre = null;
-    this.telefono = null;
-    this.email = null;
+    super('InvoiceMaker');
   }
-
-  loadFromParseObject(parseInvoiceMaker) {
-    if (!parseInvoiceMaker) return this;
-    this.id = parseInvoiceMaker.id;
-    this.nombre = parseInvoiceMaker.get('nombre');
-    this.telefono = parseInvoiceMaker.get('telefono');
-    this.email = parseInvoiceMaker.get('email');
+  get getPlainObject() {
+    return {
+      id: this.id,
+      nombre: this.get('nombre'),
+      telefono: this.get('telefono'),
+      email: this.get('email')
+    };
   }
 }
+
+Parse.Object.registerSubclass('InvoiceMaker', InvoiceMaker);
 
 module.exports = InvoiceMaker;

@@ -1,14 +1,14 @@
 const logger = require('../logger');
-const AutonomoMerchantTicketService = require('./AutonomoMerchantTicketService');
+const PreFacturaInfrastructureService = require('../API/PreFacturaInfrastructureService');
 
 async function prepararFacturas() {
   let result = false;
   try {
-    const result = await AutonomoMerchantTicketService.getAllPreFacturas();
+    const result = await PreFacturaInfrastructureService.getAllPreFacturas();
     return result;
   } catch (error) {
     throw new Error(
-      `Error on 'PrepararFacturasService.prepararFacturas': ${error.message}`
+      `Error on 'prepararFacturas.prepararFacturas': ${error.message}`
     );
   }
   return result;
