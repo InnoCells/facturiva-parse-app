@@ -9,9 +9,8 @@ async function getAllPreFacturas() {
     query.include('merchant');
     query.include('merchant.invoiceMakers');
     query.include('tickets');
-    const res = await query.first({ useMasterKey: true });
-    const result = res.getPlainObject;
-    return result;
+    const queryResult = await query.find({ useMasterKey: true });
+    return queryResult;
   } catch (error) {
     throw new Error(
       `Error on 'AutonomoMerchantTickets.getAllPreFacturas': ${error.message}`

@@ -29,6 +29,6 @@ class Factura extends Parse.Object {
   }
 }
 
-Parse.Object.registerSubclass('Factura', Factura);
+Parse.Object.registerSubclass('Facturas', Factura);
 
 module.exports = Factura;

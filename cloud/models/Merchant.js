@@ -26,7 +26,17 @@ class Merchant extends Parse.Object {
         ? _.map(this.get('invoiceMakers'), invoiceMaker => {
             return invoiceMaker.getPlainObject;
           })
-        : null
+        : null,
+      async toParseObject() {
+        const merchant = new Parse.Object('Merchant');
+        merchant.set('objectId', this.id);
+        const result = await merchant.fetch({ useMasterKey: true });
+        return result;
+
+        // const result = new Parse.Query(Merchant);
+        // result.equalTo('objectId', this.id);
+        // return await result.first({ useMasterKey: true });
+      }
     };
   }
 }

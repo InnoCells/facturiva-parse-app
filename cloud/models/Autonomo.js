@@ -6,6 +6,7 @@ class User extends Parse.User {
   }
   get getPlainObject() {
     return {
+      id: this.id,
       nombre: this.get('name'),
       apellidos: this.get('surnames'),
       userProfile: this.get('userProfile')

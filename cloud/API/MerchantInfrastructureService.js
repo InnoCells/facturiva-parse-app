@@ -1,6 +1,7 @@
 const logger = require('../logger');
+const Merchant = require('../models/Merchant');
 
-async function updateMerchant(updateMerchantRequest) {
+async function update(updateMerchantRequest) {
   let result = null;
   try {
     const merchantQuery = new Parse.Object('Merchant');
@@ -17,4 +18,17 @@ async function updateMerchant(updateMerchantRequest) {
   return result;
 }
 
-module.exports = { updateMerchant };
+async function getById(merchantId) {
+  try {
+    const query = new Parse.Query(Merchant);
+    query.equalTo('objectId', merchantId);
+    const result = await query.first({ useMasterKey: true });
+    return result;
+  } catch (error) {
+    throw new Error(
+      `Error on MerchantInfrastructureService.getById: ${error.message}`
+    );
+  }
+}
+
+module.exports = { update, getById };
