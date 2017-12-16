@@ -25,7 +25,7 @@
     "xlsx-template": "^0.2.0"
   },
   "scripts": {
-    "start": "babel-node --inspect index.js",
+    "start": "./node_modules/babel-cli/bin/babel-node.js --inspect index.js",
     "postinstall": "git update-index --skip-worktree local.js & exit 0"
   },
   "engines": {
