@@ -1,4 +1,3 @@
-require('babel-register');
 var express = require('express');
 var ParseServer = require('parse-server').ParseServer;
 var ParseDashboard = require('parse-dashboard');
