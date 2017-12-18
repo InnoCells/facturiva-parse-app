@@ -81,6 +81,22 @@ async function getByStatus(status) {
   }
 }
 
+async function getById(facturaId) {
+  try {
+    const query = new Parse.Query(Factura);
+    query.equalTo('objectId', facturaId);
+    query.include('merchant');
+    query.include('merchant.invoiceMakers');
+    query.include('autonomo');
+    query.include('autonomo.userProfile');
+    query.include('tickets');
+    const result = await query.first({ useMasterKey: true });
+    return result;
+  } catch (error) {
+    throw new Error(`Error on 'getByStatus':  ${error.message}`);
+  }
+}
+
 async function updateFactura(updateFacturaRequest) {
   try {
     const query = new Parse.Query(Factura);
@@ -122,6 +138,7 @@ module.exports = {
   generaNumeroFactura,
   InsertFactura,
   getByStatus,
+  getById,
   updateFactura,
   setStatus
 };

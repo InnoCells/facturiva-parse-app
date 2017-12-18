@@ -4,6 +4,30 @@ const StatusFacturaEnum = require('../utils/statusFacturaEnum');
 const PDFFacturaService = require('./PDFFacturaService');
 const UpdateFacturaRequest = require('../API/DTO/UpdateFacturaRequest');
 
+async function generarFacturaUnica(facturaId) {
+  try {
+    if (!facturaId) { return; }
+    const parsefactura = await FacturaInfrastructureService.getById(facturaId);
+
+    if (!parsefactura) { return; }
+    const factura = parsefactura.getPlainObject;
+    const tipoFactura = getTipoFactura(factura.merchant);
+    const file = await PDFFacturaService.getPDF(factura, tipoFactura);
+    const updateRequest = new UpdateFacturaRequest();
+    updateRequest.id = factura.id;
+    updateRequest.pdfFile = file;
+    updateRequest.status = StatusFacturaEnum.PENDING;
+    updateRequest.tipo = tipoFactura;
+    await FacturaInfrastructureService.updateFactura(updateRequest);
+  } catch (error) {
+    throw new Error(
+      `Error on 'FacturasService.generarFacturas', idFactura: ${
+      factura.id
+      }: ${error.message}`
+    );
+  }
+}
+
 async function generarFacturas() {
   try {
     const newFacturas = await FacturaInfrastructureService.getByStatus(
@@ -25,7 +49,7 @@ async function generarFacturas() {
       } catch (error) {
         throw new Error(
           `Error on 'FacturasService.generarFacturas', idFactura: ${
-            factura.id
+          factura.id
           }: ${error.message}`
         );
       }
@@ -56,4 +80,4 @@ function getTipoFactura(merchant) {
   }
 }
 
-module.exports = { generarFacturas };
+module.exports = { generarFacturas, generarFacturaUnica };
