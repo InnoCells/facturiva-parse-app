@@ -1,12 +1,13 @@
 class InsertFacturaRequest {
   constructor() {
-    this.tipo = null;
-    this.file = null;
     this.numeroFactura = null;
-    this.tickets = [];
-    this.merchant = null;
-    this.autonomo = null;
-    this.periodoFacturacion = null;
+    this.merchantId = null;
+    this.autonomoId = null;
+    this.ticketsId = [];
+    this.status = null;
+    this.tipo = null;
+    this.anyoFacturacion = null;
+    this.mesFacturacion = null;
   }
 }
 

@@ -1,16 +1,10 @@
 class UpdateFacturaRequest {
   constructor() {
-    this.idFactura = null;
-    this.file = null;
+    this.id = null;
+    this.pdfFile = null;
     this.status = null;
     this.tipo = null;
   }
 }
 
-const FACTURA_STATUS = {
-  error: 'E',
-  pendiente: 'P',
-  confirmada: 'C'
-};
-
-module.exports = { UpdateFacturaRequest, FACTURA_STATUS };
+module.exports = UpdateFacturaRequest;

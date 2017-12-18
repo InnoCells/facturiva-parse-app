@@ -18,8 +18,16 @@ async function getAllPreFacturas() {
   }
 }
 
-async function deletePreFactura() {
+async function deletePreFacturaById(preFacturaId) {
   try {
+    const preFacturaQuery = new Parse.Object('AutonomoTicketMerchant');
+    preFacturaQuery.set('objectId', preFacturaId);
+    const preFacturaObject = await preFacturaQuery.fetch({
+      useMasterKey: true
+    });
+    if (preFacturaObject) {
+      await preFacturaObject.destroy();
+    }
   } catch (error) {
     throw new Error(
       `Error on 'AutonomoMerchantTickets.deletePreFactura': ${error.message}`
@@ -29,5 +37,5 @@ async function deletePreFactura() {
 
 module.exports = {
   getAllPreFacturas,
-  deletePreFactura
+  deletePreFacturaById
 };

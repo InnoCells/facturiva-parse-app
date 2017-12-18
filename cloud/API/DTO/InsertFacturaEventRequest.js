@@ -2,7 +2,7 @@ const FACTURA_EVENT_TYPE = { error: 'E', info: 'I' };
 
 class InsertFacturaEventRequest {
   constructor() {
-    this.factura = null;
+    this.facturaId = null;
     this.type = null;
     this.info = null;
     this.xMessageId = null;
