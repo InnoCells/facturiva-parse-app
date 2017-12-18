@@ -1,26 +1,21 @@
-const UserProfile = require('./UserProfile');
+const userProfile = require('./UserProfile');
 
-class Autonomo {
+class User extends Parse.User {
   constructor() {
-    this.id = null;
-    this.nombre = null;
-    this.apellidos = null;
-    this.email = null;
-    this.UserProfile = null;
+    super(Parse.User);
   }
-
-  loadFromParseObject(parseAutonomo) {
-    if (!parseAutonomo) return;
-    this.id = parseAutonomo.id;
-    this.nombre = parseAutonomo.get('name');
-    this.apellidos = parseAutonomo.get('surnames');
-    this.email = parseAutonomo.get('email');
-    if (parseAutonomo.get('userProfile')) {
-      const userProfile = new UserProfile();
-      userProfile.loadFromParseObject(parseAutonomo.get('userProfile'));
-      this.userProfile = userProfile;
-    }
+  get getPlainObject() {
+    return {
+      id: this.id,
+      nombre: this.get('name'),
+      apellidos: this.get('surnames'),
+      userProfile: this.get('userProfile')
+        ? this.get('userProfile').getPlainObject
+        : null
+    };
   }
 }
 
-module.exports = Autonomo;
+Parse.Object.registerSubclass('_User', User);
+
+module.exports = User;

@@ -1,39 +1,27 @@
-const Autonomo = require('./Autonomo');
-
-class Ticket {
+class Ticket extends Parse.Object {
   constructor() {
-    this.id = null;
-    this.importe = null;
-    this.tipoPago = null;
-    this.status = null;
-    this.comments = null;
-    this.image = null;
-    this.numeroTicket = null;
-    this.fecha = null;
-    this.porcentajeIVA = null;
-    this.user = null;
-    this.merchant = null;
+    super('Tickets');
   }
 
-  loadFromParseObject(parseTicket) {
-    if (!parseTicket) return this;
-    this.id = parseTicket.id;
-    this.importe = parseTicket.get('importe');
-    this.tipoPago = parseTicket.get('tipoPago');
-    this.status = parseTicket.get('status');
-    this.comments = parseTicket.get('comments');
-    this.image = parseTicket.get('image')
-      ? parseTicket.get('image').url()
-      : null;
-    this.numeroTicket = parseTicket.get('numero');
-    this.fecha = parseTicket.get('fecha');
-    this.porcentajeIVA = parseTicket.get('porcentajeIVA');
-    this.user = new Autonomo();
-    if (parseTicket.get('user')) {
-      this.user.loadFromParseObject(parseTicket.get('user'));
-    }
-    this.merchant = parseTicket.get('merchant');
+  get getPlainObject() {
+    return {
+      id: this.id,
+      importe: this.get('importe'),
+      merchant: this.get('merchant')
+        ? this.get('merchant').getPlainObject
+        : null,
+      autonomo: this.get('user') ? this.get('user').getPlainObject : null,
+      tipoPago: this.get('tipoPago'),
+      status: this.get('status'),
+      porcentajeIVA: this.get('porcentajeIVA'),
+      comentarios: this.get('comments'),
+      factura: this.get('factura') ? this.get('factura').getPlainObject : null,
+      image: this.get('image') ? this.get('image').url() : null,
+      numero: this.get('numero')
+    };
   }
 }
+
+Parse.Object.registerSubclass('Tickets', Ticket);
 
 module.exports = Ticket;

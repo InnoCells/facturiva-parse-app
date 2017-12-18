@@ -13,11 +13,13 @@ const meses = [
   'Diciembre'
 ];
 
-function getMonthYearString(date) {
-  if (!date) return null;
-  const month = date.getMonth();
-  const year = date.getFullYear();
-  return `${meses[month]}, ${year}`;
+function getMonthYearString(month, year) {
+  if (!month || !year) return null;
+  const calculedMonth = month - 1;
+  if (calculedMonth == -1) {
+    calculedMonth = 12;
+  }
+  return `${meses[calculedMonth]}, ${year}`;
 }
 
 function getStringFromDate(date) {
@@ -29,4 +31,14 @@ function getStringFromDate(date) {
   return `${day} de ${meses[month]} de ${year}`;
 }
 
-module.exports = { getMonthYearString, getStringFromDate };
+function getMonthNumberFromDate(date) {
+  if (!date) return null;
+  const monthNum = date.getMonth();
+  return monthNum + 1;
+}
+
+module.exports = {
+  getMonthYearString,
+  getStringFromDate,
+  getMonthNumberFromDate
+};

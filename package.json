@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/InnoCells/facturiva-parse-app"
+    "url": "https://github.com/InnoCells/facturiva-parse-app.git"
   },
   "license": "MIT",
   "dependencies": {
