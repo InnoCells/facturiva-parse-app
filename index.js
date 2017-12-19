@@ -5,7 +5,7 @@ var parseServerConfig = require('parse-server-azure-config');
 var url = require('url');
 
 var config = parseServerConfig(__dirname);
-
+Parse.User.allowCustomUserClass(true);
 // Modify config as necessary before initializing parse server & dashboard
 
 var app = express();
