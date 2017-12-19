@@ -60,7 +60,7 @@ async function sendgridResponse(error, response, factura, mail) {
     request.facturaId = factura.id;
     request.info = `Se ha enviado un email a ${
       mail.body.personalizations[0].to[0].email
-    }`;
+      }`;
     request.xMessageId = response.headers['x-message-id'];
     request.type = FACTURA_EVENT_TYPE.info;
     await FacturaEventInfrastructureService.InsertFacturaEvent(request);
@@ -147,7 +147,7 @@ function getDestinatarios(factura) {
       response.email = factura.autonomo.email;
       response.nombre = `${factura.autonomo.nombre} ${
         factura.autonomo.apellidos
-      }`;
+        }`;
     } else {
       if (
         !factura.merchant.invoiceMakers ||
@@ -178,7 +178,7 @@ function generarMailModelSubstitutions(factura) {
       '%MERCHANT_FULL_NAME%': factura.merchant.nombre,
       '%AUTONOMO_FULL_NAME%': `${factura.autonomo.nombre} ${
         factura.autonomo.apellidos
-      }`,
+        }`,
       '%NUM_FACTURA%': factura.numeroFactura,
       '%FECHA_ACTUAL%': dateUtils.getStringFromDate(new Date()),
       '%MERCHANT_NAME%': factura.merchant.nombre,
@@ -186,23 +186,24 @@ function generarMailModelSubstitutions(factura) {
       '%MERCHANT_CALLE%': factura.merchant.direccion,
       '%MERCHANT_DIRECCION_COMPLETA%': `${factura.merchant.codigoPostal}, ${
         factura.merchant.localidad
-      }, ${factura.merchant.provincia}`,
+        }, ${factura.merchant.provincia}`,
       '%MERCHANT_TELEFONO%': factura.merchant.telefono,
       '%AUTONOMO_NAME%': `${factura.autonomo.nombre} ${
         factura.autonomo.apellidos
-      }`,
+        }`,
       '%AUTONOMO_NIF%': factura.autonomo.userProfile.nifNie,
       '%AUTONOMO_CALLE%': factura.autonomo.userProfile.domicilioSocial,
       '%AUTONOMO_DIRECCION_COMPLETA%': `${
         factura.autonomo.userProfile.codigoPostal
-      }, ${factura.autonomo.userProfile.poblacion}, ${
+        }, ${factura.autonomo.userProfile.poblacion}, ${
         factura.autonomo.userProfile.provincia
-      }`,
+        }`,
       '%AUTONOMO_TELEFONO%': factura.autonomo.userProfile.telefono,
       '%PERIODO_FACTURACION%': dateUtils.getMonthYearString(
         factura.mesFacturacion
       ),
-      '%TABLE_DETAIL%': getTableDetail(factura)
+      '%TABLE_DETAIL%': getTableDetail(factura),
+      '%LINK_VALIDA%': `${process.env.FACTURIVA_WEB_URL}/Validate/${factura.id}`
     };
     return substitutions;
   } catch (error) {
@@ -279,22 +280,22 @@ function getTableDetail(factura) {
       </td>
       <td>
         <span>${(Math.round(totalBaseImponible * 1000) / 1000)
-          .toFixed(2)
-          .toLocaleString('es-ES')}</span>
+        .toFixed(2)
+        .toLocaleString('es-ES')}</span>
       </td>
       <td>
         <span>&nbsp;</span>
       </td>
       <td>
         <span>${(Math.round(totalTipoImpositivo * 1000) / 1000)
-          .toFixed(2)
-          .toLocaleString('es-ES')}</span>
+        .toFixed(2)
+        .toLocaleString('es-ES')}</span>
       </td>
       <td>
         <strong>
           <span>${(Math.round(totalIvaIncluido * 1000) / 1000)
-            .toFixed(2)
-            .toLocaleString('es-ES')}</span>
+        .toFixed(2)
+        .toLocaleString('es-ES')}</span>
         </strong>
       </td>
     </tr>`;
